@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mafia Voteout - Voting Phase</title>
+    <link rel="stylesheet" href="voting.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Voting Phase</h1>
+            <div class="timer-container">
+                <div class="timer" id="timer">20</div>
+                <p>seconds remaining</p>
+            </div>
+        </div>
+
+        <div class="game-layout">
+            <!-- Players and Voting Section -->
+            <div class="voting-section">
+                <h2>👥 Players</h2>
+                <div class="players-list" id="playersList">
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Alice</span>
+                            <span class="player-role">Detective</span>
+                        </div>
+                        <button class="vote-btn">Vote</button>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Bob</span>
+                            <span class="player-role">Villager</span>
+                        </div>
+                        <button class="vote-btn">Vote</button>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Charlie</span>
+                            <span class="player-role">Doctor</span>
+                        </div>
+                        <button class="vote-btn">Vote</button>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Diana (You)</span>
+                            <span class="player-role">Mafia</span>
+                        </div>
+                        <button class="vote-btn" disabled>You</button>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Eve</span>
+                            <span class="player-role">Villager</span>
+                        </div>
+                        <button class="vote-btn">Vote</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <h2>💬 Chat</h2>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="system-message">Game started! Discuss and vote to eliminate the mafia.</div>
+                    <div class="chat-message">
+                        <span class="username">Alice:</span> I think Bob is acting suspicious
+                    </div>
+                    <div class="chat-message">
+                        <span class="username">Bob:</span> What? I'm innocent!
+                    </div>
+                    <div class="chat-message">
+                        <span class="username">Charlie:</span> Let's think carefully about this
+                    </div>
+                    <div class="system-message">Diana voted for Bob</div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" placeholder="Type your message..." maxlength="200">
+                    <button id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vote Results Section -->
+        <div class="vote-results" id="voteResults">
+            <h2>📊 Vote Results</h2>
+            <div class="results-list" id="resultsList">
+                <div class="result-item">
+                    <span class="result-name">Bob</span>
+                    <span class="result-votes">3 votes</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-name">Alice</span>
+                    <span class="result-votes">1 vote</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-name">Charlie</span>
+                    <span class="result-votes">1 vote</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-name">Eve</span>
+                    <span class="result-votes">0 votes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Elimination Result Section -->
+        <div class="elimination-result" id="eliminationResult">
+            <div class="result-message success" id="resultMessage">
+                🎉 You have eliminated the mafia! Bob was the mafia.
+            </div>
+            <button class="btn btn-next" id="nextRoundBtn">Next Round</button>
+        </div>
+    </div>
+
+    <script src="voting.js"></script>
+</body>
+</html>

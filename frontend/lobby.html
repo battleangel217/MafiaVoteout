@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mafia Voteout - Lobby</title>
+    <link rel="stylesheet" href="lobby.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Game Lobby</h1>
+            <div class="room-info">
+                <span class="room-code">Room: ABC123</span>
+                <span class="player-count">Players: 4/8</span>
+            </div>
+        </div>
+
+        <div class="lobby-content">
+            <!-- Players List Section -->
+            <div class="players-section">
+                <h2>👥 Players in Room</h2>
+                <div class="players-list" id="playersList">
+                    <div class="player-item admin">
+                        <div class="player-info">
+                            <span class="player-name">Alice</span>
+                            <span class="player-badge admin-badge">Admin</span>
+                        </div>
+                        <div class="player-status online">Online</div>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Bob</span>
+                        </div>
+                        <div class="player-status online">Online</div>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Charlie</span>
+                        </div>
+                        <div class="player-status online">Online</div>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <span class="player-name">Diana</span>
+                        </div>
+                        <div class="player-status online">Online</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Controls Section -->
+            <div class="controls-section">
+                <div class="game-info">
+                    <h3>🎮 Game Settings</h3>
+                    <div class="info-item">
+                        <span class="info-label">Min Players:</span>
+                        <span class="info-value">4</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Max Players:</span>
+                        <span class="info-value">8</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Game Mode:</span>
+                        <span class="info-value">Classic Mafia</span>
+                    </div>
+                </div>
+
+                <!-- Admin Start Button (only visible to admin) -->
+                <div class="admin-controls" id="adminControls">
+                    <button class="btn btn-start" id="startGameBtn">
+                        🚀 Start Game
+                    </button>
+                    <p class="start-info">All players are ready!</p>
+                </div>
+
+                <!-- Regular Player View -->
+                <div class="player-waiting" id="playerWaiting">
+                    <div class="waiting-message">
+                        <h3>⏳ Waiting for Admin</h3>
+                        <p>The game will start when the admin is ready</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <h3>💬 Lobby Chat</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="system-message">Welcome to the lobby! Waiting for more players...</div>
+                <div class="chat-message">
+                    <span class="username">Alice:</span> Hey everyone! Ready to play?
+                </div>
+                <div class="chat-message">
+                    <span class="username">Bob:</span> Yes! This is going to be fun
+                </div>
+                <div class="system-message">Charlie joined the room</div>
+                <div class="chat-message">
+                    <span class="username">Charlie:</span> Hi all!
+                </div>
+                <div class="system-message">Diana joined the room</div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" placeholder="Type your message..." maxlength="200">
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="lobby.js"></script>
+</body>
+</html>
