@@ -11,11 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-# import os, dotenv, dj_database_url
+import os, dotenv, dj_database_url
 
-# dotenv.load_dotenv()
+dotenv.load_dotenv()
 
-# DB_URL = os.environ.get('DATABASE_URL')
 
 
 
@@ -32,7 +31,7 @@ SECRET_KEY = 'django-insecure-80_+40xg$_)_4*4%+ajcht9n+=y7&*(p3#7mwa_3i!u0j*ta50
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,10 +43,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Mafiavoteout',
+    'rest_framework',
+    'Rooms',
+    'Players',
+    'corsheaders',
+    # 'channels'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,6 +60,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'Games.urls'
 
@@ -76,10 +82,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Games.wsgi.application'
+ASGI_APPLICATION = 'Games.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+# DATABASES = {
+#     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+# }
 
 DATABASES = {
     'default': {
@@ -87,12 +104,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# DATABASES["default"] = dj_database_url.parse(DB_URL)
-
-# DATABASES["default"]["OPTIONS"] = {
-#     "options":"-c search_path=mafiadb"
-# }
 
 
 # Password validation

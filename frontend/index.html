@@ -22,7 +22,7 @@
                         <label for="createUsername">Username</label>
                         <input 
                             type="text" 
-                            id="createUsername" 
+                            id="username" 
                             placeholder="Enter your username"
                             maxlength="20"
                             required
@@ -30,14 +30,14 @@
                         <div class="error-message" id="createUsernameError"></div>
                     </div>
                     <button type="submit" class="btn btn-create" >Create Lobby</button>
-                    <div class="success-message" id="createSuccess"><span style="font-size: large;">✓ </span>CREATED SUCCESSFULLY</div>
+                    <!-- <div class="success-message" id="createSuccess"><span style="font-size: large;">✓ </span>CREATED SUCCESSFULLY</div> -->
                 </form>
                 
                 <div class="room-code-display" id="roomCodeDisplay">
                     <h3>Room Created!</h3>
-                    <div class="room-code" id="generatedRoomCode">ABC123</div>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Share this code with your friends</p>
-                    <button class="btn btn-create" id="startGameBtn" onclick="window.location.href='voting.html'">Start Game</button>
+                    <div class="room-code" id="generatedRoomCode"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Share this code with your friends.<br> Click to join immediately</p>
+                    <button class="btn btn-create" id="startGameBtn" onclick="window.location.href='lobby.html'">JOINING LOBBY...</button>
                 </div>
             </div>
 
@@ -67,14 +67,13 @@
                         >
                         <div class="error-message" id="roomCodeError"></div>
                     </div>
-                    <button type="submit" class="btn btn-join" onclick="window.location.href='voting.html'">Join Room</button>
-                    <div class="success-message" id="joinSuccess"></div>
+                    <button type="submit" class="btn btn-join">Join Room</button>
                 </form>
             </div>
         </div>
 
         <div class="divider">
-            <span>Amaka</span>
+            <span>How to play?</span>
 
         </div>
     </div>

@@ -341,4 +341,8 @@ body {
   .chat-messages {
     height: 150px;
   }
+
+  .chat-input-container{
+    width: 2px;
+  }
 }
