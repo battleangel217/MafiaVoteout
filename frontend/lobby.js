@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelector('.room-code').innerText = `Room: ${code}`;
 
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${wsProto}://${location.hostname}:8000/ws/lobby/${code}/`);
+  const ws = new WebSocket(`${wsProto}://127.0.0.1:8000/ws/lobby/${code}/`);
 
   ws.addEventListener('open', () => {
     ws.send(JSON.stringify({ action: 'join', username: userinfo.username}));
