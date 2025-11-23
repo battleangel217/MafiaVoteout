@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <span class="player-name">${item.username}</span>
             ${adminBadge}
           </div>
-          <div class="player-status-online">Online</div>
+          <div class="player-status online">Online</div>
         </div>`;
     });
 
@@ -35,9 +35,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = JSON.parse(ev.data);
     if (data.type === 'player_list') renderPlayers(data.players);
     if (data.type === 'player_left') {
-      const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"] .player-status-online`);
-      if (el) el.innerHTML = 'Offline';
-      el.display.background = 'red';
+      const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"] .player-status.online`);
+      if (el) {
+        el.innerHTML = 'Offline';
+        el.display.background = 'red';
+      }
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count}/8`;
     }
