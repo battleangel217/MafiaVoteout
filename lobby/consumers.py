@@ -1,0 +1,63 @@
+# ...existing code...
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+
+class LobbyConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        from Players.models import PlayerModel as Player
+
+        self.code = self.scope['url_route']['kwargs']['code']
+        self.group_name = f"lobby_{self.code}"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # mark offline if username was set
+        from Players.models import PlayerModel as Player
+        self.username = getattr(self, "username", None)
+        if self.username:
+            await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=False)
+            await self.channel_layer.group_send(self.group_name, {
+                "type": "player.left",
+                "player": {"username": self.username}
+            })
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive(self, text_data=None, bytes_data=None):
+        try:
+            from Players.models import PlayerModel as Player
+            data = json.loads(text_data)
+            action = data.get("action")
+            if action == "join":
+                self.username = data.get("username")
+                
+                await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+
+                # send full list
+                players = await sync_to_async(list)(Player.objects.filter(room=self.code))
+                await self.channel_layer.group_send(self.group_name, {
+                    "type": "player.list",
+                    "players": [p.as_dict() for p in players]
+                })
+            elif action == "heartbeat":
+                # optional keepalive
+                pass
+        except json.JSONDecodeError:
+            print("Received invalid JSON")
+        except Exception as e:
+            print(f"Error in receive: {e}")  # Log the error
+
+    # group message handlers:
+    async def player_list(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "player_list",
+            "players": event["players"],
+        }))
+
+    async def player_left(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "player_left",
+            "player": event["player"],
+        }))
+# ...existing code...

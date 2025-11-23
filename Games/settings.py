@@ -33,10 +33,18 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:5502',
+    'http://localhost:5502',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,8 +54,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'Rooms',
     'Players',
+    'lobby',
     'corsheaders',
-    # 'channels'
+    'channels',
+    'uvicorn'
 ]
 
 MIDDLEWARE = [
@@ -86,7 +96,8 @@ ASGI_APPLICATION = 'Games.asgi.application'
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
     },
 }
 
