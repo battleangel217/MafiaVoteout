@@ -45,15 +45,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.querySelector('.player-count').innerText = `Players: ${count}/8`;
     }
     if (data.type === 'player_join') {
+      let join_username = null;
+      if (data.username === userinfo.username){
+        join_username = "you";
+      }else{
+        join_username = data.username;
+      }
+
       const chatMessages = document.getElementById("chatMessages");
       const messageElement = document.createElement("div");
       messageElement.className = "system-message";
-      messageElement.innerText = `${data.username} joined the room`;
+      messageElement.innerText = `${join_username} joined the room`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     if (data.type === 'chat_message'){
-      let uname = None;
+      let uname = null;
       if (data.username === userinfo.username){
         uname = "you";
       }else{
