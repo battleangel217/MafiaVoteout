@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <span class="player-name">${item.username}</span>
             ${adminBadge}
           </div>
-          <div class="player-status online">Online</div>
+          <div class="player-status-online">Online</div>
         </div>`;
     });
 
@@ -35,8 +35,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = JSON.parse(ev.data);
     if (data.type === 'player_list') renderPlayers(data.players);
     if (data.type === 'player_left') {
-      const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"]`);
-      if (el) el.remove();
+      const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"] .player-status-online`);
+      if (el) el.innerHTML = 'Offline';
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count}/8`;
     }
@@ -51,65 +51,65 @@ document.addEventListener("DOMContentLoaded", async () => {
   const isAdmin = userinfo.isAdmin;
 
   // Show appropriate controls based on user role
-//   if (isAdmin) {
-//     document.getElementById("adminControls").style.display = "block"
-//     document.getElementById("playerWaiting").style.display = "none"
+  if (isAdmin) {
+    document.getElementById("adminControls").style.display = "block"
+    document.getElementById("playerWaiting").style.display = "none"
 
-//   //   document.getElementById('playersList').innerHTML = `
-//   //   <div class="player-item admin">
-//   //     <div class="player-info">
-//   //         <span class="player-name">${userinfo.username}</span>
-//   //         <span class="player-badge admin-badge">Admin</span>
-//   //     </div>
-//   //     <div class="player-status online">Online</div>
-//   //   </div>
-//   // `
-//   } else {
-//     document.getElementById("adminControls").style.display = "none"
-//     document.getElementById("playerWaiting").style.display = "block"
-//   }
+  //   document.getElementById('playersList').innerHTML = `
+  //   <div class="player-item admin">
+  //     <div class="player-info">
+  //         <span class="player-name">${userinfo.username}</span>
+  //         <span class="player-badge admin-badge">Admin</span>
+  //     </div>
+  //     <div class="player-status online">Online</div>
+  //   </div>
+  // `
+  } else {
+    document.getElementById("adminControls").style.display = "none"
+    document.getElementById("playerWaiting").style.display = "block"
+  }
 
-//   // document.getElementById('playersList').innerHTML += `
-//   //   <div class="player-item">
-//   //       <div class="player-info">
-//   //           <span class="player-name">${userinfo.username}</span>
-//   //       </div>
-//   //       <div class="player-status online">Online</div>
-//   //   </div>
-//   // // `
+  // document.getElementById('playersList').innerHTML += `
+  //   <div class="player-item">
+  //       <div class="player-info">
+  //           <span class="player-name">${userinfo.username}</span>
+  //       </div>
+  //       <div class="player-status online">Online</div>
+  //   </div>
+  // // `
   
-//   // Start game button (admin only)
-//   document.getElementById("startGameBtn").addEventListener("click", () => {
-//     window.location.href = "voting.html"
-//   })
+  // Start game button (admin only)
+  document.getElementById("startGameBtn").addEventListener("click", () => {
+    window.location.href = "voting.html"
+  })
 
-//   // Chat functionality
-//   const chatInput = document.getElementById("chatInput")
-//   const sendBtn = document.getElementById("sendBtn")
+  // Chat functionality
+  const chatInput = document.getElementById("chatInput")
+  const sendBtn = document.getElementById("sendBtn")
 
-//   function sendMessage() {
-//     const message = chatInput.value.trim()
-//     if (message) {
-//       addChatMessage("You", message)
-//       chatInput.value = ""
-//     }
-//   }
+  function sendMessage() {
+    const message = chatInput.value.trim()
+    if (message) {
+      addChatMessage("You", message)
+      chatInput.value = ""
+    }
+  }
 
-//   sendBtn.addEventListener("click", sendMessage)
-//   chatInput.addEventListener("keypress", (e) => {
-//     if (e.key === "Enter") {
-//       sendMessage()
-//     }
-//   })
+  sendBtn.addEventListener("click", sendMessage)
+  chatInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      sendMessage()
+    }
+  })
 
-//   // Helper function to add chat messages
-//   function addChatMessage(username, message) {
-//     const chatMessages = document.getElementById("chatMessages")
-//     const messageElement = document.createElement("div")
-//     messageElement.className = "chat-message"
-//     messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
-//     chatMessages.appendChild(messageElement)
-//     chatMessages.scrollTop = chatMessages.scrollHeight
-//   }
+  // Helper function to add chat messages
+  function addChatMessage(username, message) {
+    const chatMessages = document.getElementById("chatMessages")
+    const messageElement = document.createElement("div")
+    messageElement.className = "chat-message"
+    messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
+    chatMessages.appendChild(messageElement)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+  }
 });
 
