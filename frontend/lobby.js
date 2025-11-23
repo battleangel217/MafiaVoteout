@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (el) {
         el.innerHTML = 'Offline';
         el.style.background = 'red';
+        el.style.color = '#ff6b6b'
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count}/8`;
