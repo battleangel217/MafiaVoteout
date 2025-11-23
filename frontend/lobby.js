@@ -38,8 +38,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"] .player-status.online`);
       if (el) {
         el.innerHTML = 'Offline';
-        el.style.background = 'red';
-        el.style.color = 'rgba(255, 0, 0, 0.3)'
+        el.style.background = 'rgba(255, 0, 0, 0.3)';
+        el.style.color = 'red'
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count}/8`;
