@@ -8,8 +8,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         from Players.models import PlayerModel as Player
 
         self.code = self.scope['url_route']['kwargs']['code']
-        self.group_name = f"lobby_{self.code}"
-        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        self.lobby_group_name = f"lobby_{self.code}"
+        self.chat_group_name = f"chat_{self.code}"
+        await self.channel_layer.group_add(self.lobby_group_name, self.channel_name)
+        await self.channel_layer.group_add(self.chat_group_name, self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -18,11 +20,11 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         self.username = getattr(self, "username", None)
         if self.username:
             await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=False)
-            await self.channel_layer.group_send(self.group_name, {
+            await self.channel_layer.group_send(self.lobby_group_name, {
                 "type": "player.left",
                 "player": {"username": self.username}
             })
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        await self.channel_layer.group_discard(self.lobby_group_name, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
         try:
@@ -36,9 +38,21 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
                 # send full list
                 players = await sync_to_async(list)(Player.objects.filter(room=self.code))
-                await self.channel_layer.group_send(self.group_name, {
+                await self.channel_layer.group_send(self.lobby_group_name, {
                     "type": "player.list",
                     "players": [p.as_dict() for p in players]
+                })
+
+                await self.channel_layer.group_send(self.chat_group_name, {
+                    "type": "player.join",
+                    "username": self.username
+                })
+            elif action == "message":
+                message = data.get("message")
+                await self.channel_layer.group_send(self.chat_group_name, {
+                    "type": "chat.message",
+                    "username": self.username,
+                    "message": message,
                 })
             elif action == "heartbeat":
                 # optional keepalive
@@ -47,6 +61,23 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             print("Received invalid JSON")
         except Exception as e:
             print(f"Error in receive: {e}")  # Log the error
+
+
+    async def player_join(self, event):
+        await self.send(text_data=json.dumps(
+            {
+                "type": "player_join",
+                "username": event["username"]
+            }
+        )
+        )
+
+    async def chat_message(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "chat_message",
+            "username": event["username"],
+            "message": event["message"],
+        }))
 
     # group message handlers:
     async def player_list(self, event):

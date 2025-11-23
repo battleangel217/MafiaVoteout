@@ -44,6 +44,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count}/8`;
     }
+    if (data.type === 'player_join') {
+      const chatMessages = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.className = "system-message";
+      messageElement.innerText = `${data.username} joined the room`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    if (data.type === 'chat_message'){
+      let uname = None;
+      if (data.username === userinfo.username){
+        uname = "you";
+      }else{
+        uname = data.username;
+      }
+      addChatMessage(uname, data.message);
+        
+    }
   });
 
   ws.addEventListener('close', () => console.log('Socket closed'));
@@ -94,9 +112,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   function sendMessage() {
     const message = chatInput.value.trim()
     if (message) {
-      addChatMessage("You", message)
-      chatInput.value = ""
-    }
+      ws.send(JSON.stringify({
+        "action": "message",
+        "username": userinfo.username,
+        "message": message
+      }
+      ));
+      // addChatMessage("You", message)
+      // chatInput.value = ""
+    };
   }
 
   sendBtn.addEventListener("click", sendMessage)
