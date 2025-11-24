@@ -28,7 +28,7 @@ class RoomViews(APIView):
             serializer.save()
 
             try:
-                player = PlayerModel.objects.create(username=serializer.data["username"], room_id=serializer.data["code"], isAdmin=True)
+                player = PlayerModel.objects.create(username=serializer.data["username"], room_id=serializer.data["code"], is_admin=True)
                 player.save()
             except:
                 RoomModel.objects.get(code=data["code"]).delete()

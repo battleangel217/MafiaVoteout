@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById('playersList');
     container.innerHTML = '';
     document.querySelector('.player-count').innerText = `Players: ${list.length}/8`;
+    self.nplayers = list.length;
     list.forEach(item => {
       const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
       container.innerHTML += `
@@ -69,6 +70,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       addChatMessage(uname, data.message);
         
     }
+
+    if (data.type === 'start_game'){
+      window.location.href = "voting.html"
+    }
   });
 
   ws.addEventListener('close', () => console.log('Socket closed'));
@@ -90,12 +95,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Start game button (admin only)
   document.getElementById("startGameBtn").addEventListener("click", () => {
-    ws.send(JSON.stringify(
-      {
-        "action": "start_game"
-      }
-    ))
-    window.location.href = "voting.html"
+    if (nplayers > 4){
+      ws.send(JSON.stringify(
+        {
+          "action": "start_game"
+        }
+      ));
+    }else{
+      alert('Players must be up to 4')
+    }
   })
 
   // Chat functionality
