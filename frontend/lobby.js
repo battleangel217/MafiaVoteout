@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         el.style.color = 'red'
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
-      document.querySelector('.player-count').innerText = `Players: ${count}/8`;
+      document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
     }
     if (data.type === 'player_join') {
       let join_username = null;
