@@ -54,6 +54,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     "username": self.username,
                     "message": message,
                 })
+            elif action == "start_game":
+                await self.channel_layer.group_send(self.lobby_group_name, {
+                    "type": "start.game",
+                })
             elif action == "heartbeat":
                 # optional keepalive
                 pass
@@ -90,5 +94,13 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "player_left",
             "player": event["player"],
+        }))
+
+
+    async def start_game(self, event):
+        from Rooms.models import RoomModel as Room
+        await sync_to_async(Room.objects.filter(code=self.code).update)(started=True)
+        await self.send(text_data=json.dumps({
+            "type": "start_game"
         }))
 # ...existing code...

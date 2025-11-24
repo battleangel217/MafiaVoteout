@@ -110,7 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
               alert('Server Error');
               return;
             }
-          }throw new Error("Failed")
+          }else if (response.status === 401){
+            document.getElementById('roomCodeError').style.display = "block";
+            document.getElementById('roomCodeError').innerText = "Room full";
+            return;
+          }
+          throw new Error("Failed")
         }
 
         const res = await response.json();

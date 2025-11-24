@@ -83,32 +83,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (isAdmin) {
     document.getElementById("adminControls").style.display = "block"
     document.getElementById("playerWaiting").style.display = "none"
-
-  //   document.getElementById('playersList').innerHTML = `
-  //   <div class="player-item admin">
-  //     <div class="player-info">
-  //         <span class="player-name">${userinfo.username}</span>
-  //         <span class="player-badge admin-badge">Admin</span>
-  //     </div>
-  //     <div class="player-status online">Online</div>
-  //   </div>
-  // `
   } else {
     document.getElementById("adminControls").style.display = "none"
     document.getElementById("playerWaiting").style.display = "block"
   }
-
-  // document.getElementById('playersList').innerHTML += `
-  //   <div class="player-item">
-  //       <div class="player-info">
-  //           <span class="player-name">${userinfo.username}</span>
-  //       </div>
-  //       <div class="player-status online">Online</div>
-  //   </div>
-  // // `
   
   // Start game button (admin only)
   document.getElementById("startGameBtn").addEventListener("click", () => {
+    ws.send(JSON.stringify(
+      {
+        "action": "start_game"
+      }
+    ))
     window.location.href = "voting.html"
   })
 
@@ -126,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       ));
       // addChatMessage("You", message)
-      // chatInput.value = ""
+      chatInput.value = ""
     };
   }
 
