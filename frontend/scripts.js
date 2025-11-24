@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = {
       username: username,
-      isAdmin: true
+      // isAdmin: true
     };
 
     try{
