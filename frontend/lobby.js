@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Start game button (admin only)
   document.getElementById("startGameBtn").addEventListener("click", () => {
-    if (nplayers > 4){
+    if (nplayers > 3){
       ws.send(JSON.stringify(
         {
           "action": "start_game"
