@@ -18,15 +18,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelector('.player-count').innerText = `Players: ${list.length}/8`;
     self.nplayers = list.length;
     list.forEach(item => {
-      const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
-      container.innerHTML += `
-        <div class="player-item" data-username="${item.username}">
-          <div class="player-info">
-            <span class="player-name">${item.username}</span>
-            ${adminBadge}
-          </div>
-          <div class="player-status online">Online</div>
-        </div>`;
+      if (userinfo.username === item.username){
+        const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
+        container.innerHTML += `
+          <div class="player-item" data-username="${item.username}">
+            <div class="player-info">
+              <span class="player-name">${item.username} (You)</span>
+              ${adminBadge}
+            </div>
+            <div class="player-status online">Online</div>
+          </div>`;
+      }else{
+        const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
+        container.innerHTML += `
+          <div class="player-item" data-username="${item.username}">
+            <div class="player-info">
+              <span class="player-name">${item.username}</span>
+              ${adminBadge}
+            </div>
+            <div class="player-status online">Online</div>
+          </div>`;
+      }
     });
 
     return;
