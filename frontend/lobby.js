@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const chatMessages = document.getElementById("chatMessages")
     const messageElement = document.createElement("div")
     if (username === 'You'){
-      messageElement.className = ".you-chat-message"
+      messageElement.className = "you-chat-message"
       messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
     }else{
       messageElement.className = "chat-message"
