@@ -260,6 +260,11 @@ body {
   color: #4ecdc4;
 }
 
+.you-chat-message .username {
+  font-weight: bold;
+  color: #4ecdc4;
+}
+
 .system-message {
   color: #ffa500;
   font-style: italic;
