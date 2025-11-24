@@ -45,10 +45,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
     }
+
+
     if (data.type === 'player_join') {
       let join_username = null;
       if (data.username === userinfo.username){
-        join_username = "you";
+        join_username = "You";
       }else{
         join_username = data.username;
       }
@@ -60,10 +62,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
+
+
     if (data.type === 'chat_message'){
       let uname = null;
       if (data.username === userinfo.username){
-        uname = "you";
+        uname = "You";
       }else{
         uname = data.username;
       }
@@ -135,8 +139,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   function addChatMessage(username, message) {
     const chatMessages = document.getElementById("chatMessages")
     const messageElement = document.createElement("div")
-    messageElement.className = "chat-message"
-    messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
+    if (username === 'You'){
+      messageElement.className = ".you-chat-message"
+      messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
+    }else{
+      messageElement.className = "chat-message"
+      messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
+    }
     chatMessages.appendChild(messageElement)
     chatMessages.scrollTop = chatMessages.scrollHeight
   }
