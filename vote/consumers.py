@@ -18,6 +18,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.channel_layer.group_add(self.chat_group_name, self.channel_name)
         await self.channel_layer.group_add(self.timer_group_name, self.channel_name)
+        print('ge')
         await self.accept()
 
 
@@ -44,10 +45,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
             if action == "join":
                 self.username = data.get("username")
                 
-                await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
-
                 # send full list
                 players = await sync_to_async(list)(Player.objects.filter(room=self.code))
+                print(players)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "player.list",
                     "players": [p.as_dict() for p in players]
@@ -92,32 +92,36 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def timer(self, event):
         await self.send(text_data=json.dumps({
             "type": "timer",
-            "time_left": event.get("time_left"),
+            "time_left": event["time_left"],
+        }))
+
+    async def player_join(self, event):
+        await self.send(text_data=json.dumps(
+            {
+                "type": "player_join",
+                "username": event["username"]
+            }
+        )
+        )
+
+    async def chat_message(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "chat_message",
+            "username": event["username"],
+            "message": event["message"],
+        }))
+
+    # group message handlers:
+    async def player_list(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "player_list",
+            "players": event["players"],
         }))
 
     async def player_left(self, event):
         await self.send(text_data=json.dumps({
-            "type": "player.left",
-            "player": event.get("player")
-        }))
-
-    async def player_list(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "player.list",
-            "players": event.get("players")
-        }))
-
-    async def player_join(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "player.join",
-            "username": event.get("username")
-        }))
-
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "chat.message",
-            "username": event.get("username"),
-            "message": event.get("message")
+            "type": "player_left",
+            "player": event["player"],
         }))
 
     async def vote_recorded(self, event):

@@ -183,7 +183,20 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.you-chat-message{
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+  background: rgba(255, 217, 0, 0.37);
+  text-align: right;
+}
+
 .chat-message .username {
+  font-weight: bold;
+  color: #4ecdc4;
+}
+
+.you-chat-message .username {
   font-weight: bold;
   color: #4ecdc4;
 }

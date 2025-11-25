@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   code = userinfo.room || userinfo.code;
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
-
-  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`);
+  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/5ABD39/`);
+  // console.log(ws.send(JSON.stringify({ action: 'join', username: userinfo.username})));
 
   ws.addEventListener('open', () => {
     ws.send(JSON.stringify({ action: 'join', username: userinfo.username}));
@@ -83,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'start_game'){
       window.location.href = "voting.html";
     }
-  });
 
   ws.addEventListener('close', () => console.log('Socket closed'));
   ws.addEventListener('error', (e) => console.error('Socket error', e));
@@ -161,14 +160,20 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("nextRoundBtn").addEventListener("click", () => {
     window.location.href = "index.html";
   })
-})
+  })
 
-// Helper function to add chat messages
-function addChatMessage(username, message) {
-  const chatMessages = document.getElementById("chatMessages");
-  const messageElement = document.createElement("div");
-  messageElement.className = "chat-message";
-  messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`;
-  chatMessages.appendChild(messageElement);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+  // Helper function to add chat messages
+  function addChatMessage(username, message) {
+      const chatMessages = document.getElementById("chatMessages")
+      const messageElement = document.createElement("div")
+      if (username === 'You'){
+        messageElement.className = "you-chat-message"
+        messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
+      }else{
+        messageElement.className = "chat-message"
+        messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
+      }
+      chatMessages.appendChild(messageElement)
+      chatMessages.scrollTop = chatMessages.scrollHeight
+  }
+});
