@@ -2,9 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
   let timeLeft = 20
-  const timerElement = document.getElementById("timer")
+  const timerElement = document.getElementById("timer");
 
-  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`)
+  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`);
 
   ws.addEventListener('open', () => {
     ws.send(JSON.stringify({ action: 'join', username: userinfo.username}));
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'player_list') renderPlayers(data.players);
     if (data.type === 'player_left') {
       const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"]`);
-      if (el) el.removeChild()
+      if (el) el.removeChild();
       // const count = document.querySelectorAll('#playersList .player-item').length;
       // document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
       // nplayers --;
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (data.type === 'start_game'){
-      window.location.href = "voting.html"
+      window.location.href = "voting.html";
     }
   });
 
@@ -116,29 +116,29 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!this.disabled) {
         // Reset all buttons
         document.querySelectorAll(".vote-btn").forEach((btn) => {
-          btn.classList.remove("voted")
-          btn.textContent = "Vote"
-          btn.disabled = false
+          btn.classList.remove("voted");
+          btn.textContent = "Vote";
+          btn.disabled = false;
         })
 
         // Mark this button as voted
-        this.classList.add("voted")
-        this.textContent = "Voted"
-        this.disabled = true
+        this.classList.add("voted");
+        this.textContent = "Voted";
+        this.disabled = true;
 
         // Add chat message
-        const playerName = this.closest(".player-item").querySelector(".player-name").textContent
-        addChatMessage("You", `voted for ${playerName.replace(" (You)", "")}`)
+        const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
+        addChatMessage("You", `voted for ${playerName.replace(" (You)", "")}`);
       }
     })
   })
 
   // Chat functionality
-  const chatInput = document.getElementById("chatInput")
-  const sendBtn = document.getElementById("sendBtn")
+  const chatInput = document.getElementById("chatInput");
+  const sendBtn = document.getElementById("sendBtn");
 
   function sendMessage() {
-    const message = chatInput.value.trim()
+    const message = chatInput.value.trim();
     if (message) {
       ws.send(JSON.stringify(
         {
@@ -146,29 +146,29 @@ document.addEventListener("DOMContentLoaded", () => {
           "username": userinfo.username,
           "message": message
         }
-      ))
-    }
+      ));
+    };
   }
 
-  sendBtn.addEventListener("click", sendMessage)
+  sendBtn.addEventListener("click", sendMessage);
   chatInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      sendMessage()
+      sendMessage();
     }
   })
 
   // Next round button
   document.getElementById("nextRoundBtn").addEventListener("click", () => {
-    window.location.href = "index.html"
+    window.location.href = "index.html";
   })
 })
 
 // Helper function to add chat messages
 function addChatMessage(username, message) {
-  const chatMessages = document.getElementById("chatMessages")
-  const messageElement = document.createElement("div")
-  messageElement.className = "chat-message"
-  messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
-  chatMessages.appendChild(messageElement)
-  chatMessages.scrollTop = chatMessages.scrollHeight
+  const chatMessages = document.getElementById("chatMessages");
+  const messageElement = document.createElement("div");
+  messageElement.className = "chat-message";
+  messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`;
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
