@@ -1,6 +1,3 @@
-const { jsx } = require("react/jsx-runtime");
-
-// Basic UI interactions - no complex game logic
 document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
