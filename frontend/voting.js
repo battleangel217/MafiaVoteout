@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
-  let timeLeft = 20
-  const timerElement = document.getElementById("timer");
+  // let timeLeft = 20;
+  // const timerElement = document.getElementById("timer");
 
   const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`);
 
