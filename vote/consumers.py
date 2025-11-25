@@ -68,7 +68,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 })
                 
             elif action == "start_timer":
-                duration = data.get("duration", 120)  # default 120 seconds
+                duration = data.get("duration", 70)  # default 120 seconds
                 await self.start_voting_timer(duration)
                 
             elif action == "vote":
@@ -139,6 +139,10 @@ class VotingConsumer(AsyncWebsocketConsumer):
         # Stop existing timer if running
         if self.code in self.room_timers:
             self.room_timers[self.code]['stop'] = True
+
+        await self.channel_layer.group_send(self.room_group_name, {
+            "type": "start.voting"
+        })
         
         # Mark timer as running
         timer_data = {'stop': False, 'duration': duration}
@@ -170,7 +174,11 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def timer_finished(self, event):
         """Handle timer completion"""
         await self.send(text_data=json.dumps({
-            "type": "timer.finished"
+            "type": "timer_finished"
         }))
 
+    async def start_voting(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "start_voting"
+        }))
         

@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
+  document.querySelector('.room-code').innerText = `Room: ${code}`;
+
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
   const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/5ABD39/`);
@@ -8,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   ws.addEventListener('open', () => {
     ws.send(JSON.stringify({ action: 'join', username: userinfo.username}));
+    ws.send(JSON.stringify({}))
   });
 
   function renderPlayers(list) {
@@ -24,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="player-name">${item.username} (You)</span>
               ${mafiaBadge}
             </div>
-            <button class="vote-btn">Vote</button>
+            <button class="vote-btn" disabled>Vote</button>
           </div>`;
       }else{
         container.innerHTML += `
@@ -32,20 +35,46 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="player-info">
               <span class="player-name">${item.username}</span>
             </div>
-            <button class="vote-btn">Vote</button>
+            <button class="vote-btn" disabled>Vote</button>
           </div>`;
       }
     });
+
+    document.querySelectorAll(".vote-btn").forEach((button) => {
+    console.log('yoi');
+    button.addEventListener("click", function () {
+      if (!this.disabled) {
+        // Reset all buttons
+        document.querySelectorAll(".vote-btn").forEach((btn) => {
+          btn.classList.remove("voted");
+          btn.textContent = "Vote";
+          btn.disabled = true;
+        })
+
+        // Mark this button as voted
+        this.classList.add("voted");
+        this.textContent = "Voted";
+        this.disabled = true;
+        
+
+        // Add chat message
+        const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
+        addChatMessage("You", `voted for ${playerName.replace(" (You)", "")}`);
+      }
+    })
+    })
 
     return;
   }
 
   ws.addEventListener('message', (ev) => {
     const data = JSON.parse(ev.data);
+    const timerElement = document.getElementById("timer");
+    const timerContainer = document.getElementById("timerContainer")
     if (data.type === 'player_list') renderPlayers(data.players);
     if (data.type === 'player_left') {
       const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"]`);
-      if (el) el.removeChild();
+      // if (el) el.removeChild();
       // const count = document.querySelectorAll('#playersList .player-item').length;
       // document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
       // nplayers --;
@@ -80,57 +109,93 @@ document.addEventListener("DOMContentLoaded", () => {
         
     }
 
+    if (data.type === 'timer'){
+      let timeLeft = data.time_left;
+
+      timerElement.textContent = timeLeft;
+
+    // Add visual warnings
+      if (timeLeft <= 5) {
+        timerElement.className = "timer critical";
+        // keep the container class as timer-container and add a modifier
+        timerContainer.className = "timer-container critical";
+      } else if (timeLeft <= 10) {
+        timerElement.className = "timer warning";
+        timerContainer.className = "timer-container warning";
+      } else if (timeLeft <= 60){
+        timerElement.className = "timer first warning";
+        // use first + warning modifier classes on the container (no .timer class)
+        timerContainer.className = "timer-container first warning";
+      }
+    }
+
+    if (data.type === 'start_voting'){
+      document.querySelectorAll('.vote-btn').forEach((btn) => {
+        btn.disabled = false;
+      })
+    }
+
+    if (data.type === 'timer_finished'){
+      timerElement.textContent = 120;
+      timerElement.className = "timer";
+      timerContainer.className = "timer-container";
+      document.getElementById("voteResults").style.display = "block";
+      document.getElementById("eliminationResult").style.display = "block";
+
+    }
+
     if (data.type === 'start_game'){
       window.location.href = "voting.html";
     }
-
+  })
   ws.addEventListener('close', () => console.log('Socket closed'));
   ws.addEventListener('error', (e) => console.error('Socket error', e));
 
   // Simple timer countdown for demo
   // const timerInterval = setInterval(() => {
   //   timeLeft--
-  //   timerElement.textContent = timeLeft
+    // timerElement.textContent = timeLeft
 
-  //   // Add visual warnings
-  //   if (timeLeft <= 5) {
-  //     timerElement.className = "timer critical"
-  //   } else if (timeLeft <= 10) {
-  //     timerElement.className = "timer warning"
-  //   }
+    // // Add visual warnings
+    // if (timeLeft <= 5) {
+    //   timerElement.className = "timer critical"
+    // } else if (timeLeft <= 10) {
+    //   timerElement.className = "timer warning"
+    // }
 
-  //   if (timeLeft <= 0) {
-  //     clearInterval(timerInterval)
-  //     // Show results sections
-  //     document.getElementById("voteResults").style.display = "block"
-  //     setTimeout(() => {
-  //       document.getElementById("eliminationResult").style.display = "block"
-  //     }, 2000)
-  //   }
+    // if (timeLeft <= 0) {
+    //   clearInterval(timerInterval)
+    //   // Show results sections
+    //   document.getElementById("voteResults").style.display = "block"
+    //   setTimeout(() => {
+        // document.getElementById("eliminationResult").style.display = "block"
+    //   }, 2000)
+    // }
   // }, 1000)
 
   // Vote button interactions
-  document.querySelectorAll(".vote-btn").forEach((button) => {
-    button.addEventListener("click", function () {
-      if (!this.disabled) {
-        // Reset all buttons
-        document.querySelectorAll(".vote-btn").forEach((btn) => {
-          btn.classList.remove("voted");
-          btn.textContent = "Vote";
-          btn.disabled = false;
-        })
+  // document.querySelectorAll(".vote-btn").forEach((button) => {
+  //   console.log('yoi');
+  //   button.addEventListener("click", function () {
+  //     if (!this.disabled) {
+  //       // Reset all buttons
+  //       document.querySelectorAll(".vote-btn").forEach((btn) => {
+  //         btn.classList.remove("voted");
+  //         btn.textContent = "Vote";
+  //         btn.disabled = false;
+  //       })
 
-        // Mark this button as voted
-        this.classList.add("voted");
-        this.textContent = "Voted";
-        this.disabled = true;
+  //       // Mark this button as voted
+  //       this.classList.add("voted");
+  //       this.textContent = "Voted";
+  //       this.disabled = true;
 
-        // Add chat message
-        const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
-        addChatMessage("You", `voted for ${playerName.replace(" (You)", "")}`);
-      }
-    })
-  })
+  //       // Add chat message
+  //       const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
+  //       addChatMessage("You", `voted for ${playerName.replace(" (You)", "")}`);
+  //     }
+  //   })
+  // })
 
   // Chat functionality
   const chatInput = document.getElementById("chatInput");
@@ -151,17 +216,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   sendBtn.addEventListener("click", sendMessage);
-  // chatInput.addEventListener("keypress", (e) => {
-  //   if (e.key === "Enter") {
-  //     sendMessage();
-  //   }
-  // })
+  chatInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  })
 
   // Next round button
   document.getElementById("nextRoundBtn").addEventListener("click", () => {
     window.location.href = "index.html";
   })
-  })
+
 
   // Helper function to add chat messages
   function addChatMessage(username, message) {
