@@ -146,15 +146,16 @@ document.addEventListener("DOMContentLoaded", () => {
           "message": message
         }
       ));
+      chatInput.value = ""
     };
   }
 
   sendBtn.addEventListener("click", sendMessage);
-  chatInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  })
+  // chatInput.addEventListener("keypress", (e) => {
+  //   if (e.key === "Enter") {
+  //     sendMessage();
+  //   }
+  // })
 
   // Next round button
   document.getElementById("nextRoundBtn").addEventListener("click", () => {
@@ -173,6 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageElement.className = "chat-message"
         messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
       }
+      console.log("mffff")
       chatMessages.appendChild(messageElement)
       chatMessages.scrollTop = chatMessages.scrollHeight
   }

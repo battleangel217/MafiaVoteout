@@ -44,6 +44,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             
             if action == "join":
                 self.username = data.get("username")
+                print(self.username)
                 
                 # send full list
                 players = await sync_to_async(list)(Player.objects.filter(room=self.code))
