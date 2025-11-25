@@ -56,6 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
+      nplayers --;
     }
 
 

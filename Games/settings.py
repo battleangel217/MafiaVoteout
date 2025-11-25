@@ -57,7 +57,8 @@ INSTALLED_APPS = [
     'lobby',
     'corsheaders',
     'channels',
-    'uvicorn'
+    'uvicorn',
+    'vote'
 ]
 
 MIDDLEWARE = [
