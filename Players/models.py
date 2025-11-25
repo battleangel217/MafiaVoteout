@@ -5,7 +5,7 @@ from Rooms.models import *
 
 class PlayerModel(models.Model):
     username = models.CharField(max_length=100, unique=True)
-    status = models.CharField(max_length=100, default='Not Mafia')
+    is_mafia = models.BooleanField(default=False)
     vote = models.IntegerField(default=0)
     room = models.ForeignKey(RoomModel, on_delete=models.CASCADE, related_name='room_code')
     is_admin = models.BooleanField(default=False)
@@ -16,4 +16,5 @@ class PlayerModel(models.Model):
             "username": self.username,
             "isAdmin": self.is_admin,
             "online": self.online,
+            "isMafia": self.is_mafia
         }

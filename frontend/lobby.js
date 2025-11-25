@@ -1,5 +1,3 @@
-// Basic lobby interactions - no complex logic
-// ...existing code...
 document.addEventListener("DOMContentLoaded", async () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
@@ -8,10 +6,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`ws://127.0.0.1:8000/ws/lobby/${code}/`);
 
+  // Sends join message
   ws.addEventListener('open', () => {
     ws.send(JSON.stringify({ action: 'join', username: userinfo.username}));
   });
 
+  //render players from db
   function renderPlayers(list) {
     const container = document.getElementById('playersList');
     container.innerHTML = '';
