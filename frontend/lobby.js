@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.player.username === userinfo.username){
         join_username = "You";
       }else{
-        join_username = data.username;
+        join_username = data.player.username;
       }
 
       const chatMessages = document.getElementById("chatMessages");

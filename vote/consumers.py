@@ -53,7 +53,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 print(self.code)
                 # mark player online
                 player = await self.get_players(self.username, self.code)
-                print(player)
+                await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+
                 if not player:
                     await self.channel_layer.group_send(self.chat_group_name, {
                         "type": "not.found"
