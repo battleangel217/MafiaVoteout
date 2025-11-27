@@ -40,27 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    function renderVote(list){
-      const container = document.getElementById('resultsList');
-      container.innerHTML = '';
-
-      list.forEach(item => {
-        if (userinfo.username === item.username){
-          container.innerHTML += `
-            <div class="result-item">
-                <span class="result-name">${item.username} (You)</span>
-                <span class="result-votes">${item.vote} votes</span>
-            </div>`;
-        }else{
-          container.innerHTML += `
-            <div class="result-item">
-                <span class="result-name">${item.username}</span>
-                <span class="result-votes">${item.vote} votes</span>
-            </div>`;
-        }
-        
-      });
-    }
 
     document.querySelectorAll(".vote-btn").forEach((button) => {
     console.log('yoi');
@@ -92,6 +71,28 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     return;
+  }
+
+  function renderVote(list){
+      const container = document.getElementById('resultsList');
+      container.innerHTML = '';
+
+      list.forEach(item => {
+        if (userinfo.username === item.username){
+          container.innerHTML += `
+            <div class="result-item">
+                <span class="result-name">${item.username} (You)</span>
+                <span class="result-votes">${item.vote} votes</span>
+            </div>`;
+        }else{
+          container.innerHTML += `
+            <div class="result-item">
+                <span class="result-name">${item.username}</span>
+                <span class="result-votes">${item.vote} votes</span>
+            </div>`;
+        }
+        
+      });
   }
 
   ws.addEventListener('message', (ev) => {

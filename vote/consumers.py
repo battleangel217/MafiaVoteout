@@ -55,7 +55,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 # mark player online
                 player = await self.get_players(self.username, self.code)
                 room = await self.get_room(self.code)
+                print(room)
                 if not room:
+                    print("hey")
                     await self.channel_layer.group_send(self.room_group_name, {
                         "type": "not.found"
                     })
@@ -237,6 +239,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
         }))
         
     async def not_found(self, event):
+        print("Yoji")
         await self.send(text_data=json.dumps({
             "type": "not_found"
         }))
