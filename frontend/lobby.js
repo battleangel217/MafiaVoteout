@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
 
       let join_username = null;
-      if (data.username === userinfo.username){
+      if (data.player.username === userinfo.username){
         join_username = "You";
       }else{
         join_username = data.username;

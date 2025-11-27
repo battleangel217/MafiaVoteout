@@ -2,6 +2,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -37,6 +38,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 print(self.username)
                 
                 player = await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+                print(player)
                 if not player:
                     await self.channel_layer.group_send(self.chat_group_name, {
                         "type": "not.found"

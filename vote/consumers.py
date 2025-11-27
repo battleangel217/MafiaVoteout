@@ -3,6 +3,7 @@ import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
+from channels.db import database_sync_to_async
 
 class VotingConsumer(AsyncWebsocketConsumer):
     # Class-level dict to track timers per room
@@ -49,8 +50,10 @@ class VotingConsumer(AsyncWebsocketConsumer):
             if action == "join":
                 self.username = data.get("username")
                 print(self.username)
+                print(self.code)
                 # mark player online
-                player = await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+                player = await self.get_players(self.username, self.code)
+                print(player)
                 if not player:
                     await self.channel_layer.group_send(self.chat_group_name, {
                         "type": "not.found"
@@ -216,3 +219,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "not_found"
         }))
+
+    @database_sync_to_async
+    def get_players(self, name, code):
+        from Players.models import PlayerModel as Player
+        return Player.objects.filter(username=name, room=code).values().first()
