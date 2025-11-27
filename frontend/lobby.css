@@ -141,6 +141,12 @@ body {
   border: 1px solid rgba(78, 205, 196, 0.5);
 }
 
+.player-status.offline{
+  background: rgba(255, 0, 0, 0.3);
+  color: red;
+  border: 1px solid rgba(78, 205, 196, 0.5);
+}
+
 .game-info {
   margin-bottom: 2rem;
 }

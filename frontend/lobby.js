@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelector('.player-count').innerText = `Players: ${list.length}/8`;
     self.nplayers = list.length;
     list.forEach(item => {
+      let status = null;
+      if (item.online){
+        status = "Online"
+      }else {
+        status = "Offline"
+      }
       if (userinfo.username === item.username){
         const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
         container.innerHTML += `
@@ -26,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               <span class="player-name">${item.username} (You)</span>
               ${adminBadge}
             </div>
-            <div class="player-status online">Online</div>
+            <div class="player-status ${status.toLocaleLowerCase()}">${status}</div>
           </div>`;
       }else{
         const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
@@ -36,7 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               <span class="player-name">${item.username}</span>
               ${adminBadge}
             </div>
-            <div class="player-status online">Online</div>
+            <div class="player-status ${status.toLocaleLowerCase()}">${status}</div>
           </div>`;
       }
     });
@@ -70,6 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       messageElement.innerText = `${join_username} left the room`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      self.nplayers --;
       
     }
 
