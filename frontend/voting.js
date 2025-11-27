@@ -99,7 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = JSON.parse(ev.data);
     const timerElement = document.getElementById("timer");
     const timerContainer = document.getElementById("timerContainer")
-    if (data.type === 'player_list') renderPlayers(data.players); renderVote(data.players);
+    if (data.type === 'player_list'){
+      renderPlayers(data.players); 
+      renderVote(data.players);
+    }
     if (data.type === 'player_left') {
       const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"]`);
       if (el) el.remove();
