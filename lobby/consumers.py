@@ -25,6 +25,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 "player": {"username": self.username}
             })
         await self.channel_layer.group_discard(self.lobby_group_name, self.channel_name)
+        await self.channel_layer.group_discard(self.chat_group_name, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
         try:

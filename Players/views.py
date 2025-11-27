@@ -19,7 +19,7 @@ class PlayerViews(APIView):
         player_count = PlayerModel.objects.filter(room=code)
         try:
             room = RoomModel.objects.get(code=code)
-            if not room.started:
+            if room.started:
                 return Response({"message":"Game has started"}, status=status.HTTP_401_UNAUTHORIZED)
         except RoomModel.DoesNotExist:
             return Response({'message': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)

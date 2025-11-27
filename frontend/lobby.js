@@ -56,7 +56,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
       document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
-      nplayers --;
+
+      let join_username = null;
+      if (data.username === userinfo.username){
+        join_username = "You";
+      }else{
+        join_username = data.username;
+      }
+
+      const chatMessages = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.className = "system-message";
+      messageElement.innerText = `${join_username} left the room`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      
     }
 
 
