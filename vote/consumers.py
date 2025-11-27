@@ -6,6 +6,10 @@ from django.core.cache import cache
 
 class VotingConsumer(AsyncWebsocketConsumer):
     # Class-level dict to track timers per room
+    # room_timers maps room_code -> dict with keys:
+    #   'task' -> asyncio.Task running the timer
+    #   'owner' -> channel_name of the consumer that started it
+    #   'duration' -> requested duration
     room_timers = {}
 
     async def connect(self):
@@ -45,9 +49,17 @@ class VotingConsumer(AsyncWebsocketConsumer):
             if action == "join":
                 self.username = data.get("username")
                 print(self.username)
+                # mark player online
+                player = await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+                if not player:
+                    await self.channel_layer.group_send(self.chat_group_name, {
+                        "type": "not.found"
+                    })
+                    return
+
                 
                 # send full list
-                players = await sync_to_async(list)(Player.objects.filter(room=self.code))
+                players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
                 print(players)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "player.list",
@@ -68,7 +80,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 })
                 
             elif action == "start_timer":
-                duration = data.get("duration", 70)  # default 120 seconds
+                duration = data.get("duration", 70)  # default 70 seconds
+                # spawn the timer as a background task so we don't block receive()
                 await self.start_voting_timer(duration)
                 
             elif action == "vote":
@@ -127,7 +140,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
     async def vote_recorded(self, event):
         await self.send(text_data=json.dumps({
-            "type": "vote.recorded",
+            "type": "vote_recorded",
             "voter": event.get("voter"),
             "votee": event.get("votee")
         }))
@@ -135,41 +148,24 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def start_voting_timer(self, duration):
         """Start a synchronized voting timer for the room"""
         timer_key = f"timer_{self.code}"
-        
-        # Stop existing timer if running
-        if self.code in self.room_timers:
-            self.room_timers[self.code]['stop'] = True
+        # If there is an existing timer for the room started by someone else, cancel it
+        existing = self.room_timers.get(self.code)
+        if existing:
+            task = existing.get('task')
+            # cancel previous task
+            if task and not task.done():
+                task.cancel()
 
+        # announce start (non-blocking)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "start.voting"
         })
-        
-        # Mark timer as running
-        timer_data = {'stop': False, 'duration': duration}
-        self.room_timers[self.code] = timer_data
-        
-        # Run timer countdown
-        for seconds_left in range(duration, -1, -1):
-            if timer_data['stop']:
-                break
-                
-            await self.channel_layer.group_send(self.timer_group_name, {
-                "type": "timer",
-                "time_left": seconds_left,
-                "total_duration": duration
-            })
-            
-            # Wait 1 second before next tick
-            await asyncio.sleep(1)
-        
-        # Timer finished - notify room
-        await self.channel_layer.group_send(self.room_group_name, {
-            "type": "timer.finished",
-        })
-        
-        # Clean up
-        if self.code in self.room_timers:
-            del self.room_timers[self.code]
+
+        # create and store a background task that runs the countdown
+        # store the owner so we can cancel it on disconnect from that connection
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(self._run_voting_timer(self.code, duration, self.channel_layer))
+        self.room_timers[self.code] = {'task': task, 'owner': self.channel_name, 'duration': duration}
 
     async def timer_finished(self, event):
         """Handle timer completion"""
@@ -177,8 +173,46 @@ class VotingConsumer(AsyncWebsocketConsumer):
             "type": "timer_finished"
         }))
 
+    async def _run_voting_timer(self, code, duration, channel_layer):
+        """Background task that sends timer ticks and finishes.
+
+        This function is run as an independent asyncio.Task so it can be cancelled
+        without blocking the consumer instance shutdown.
+        """
+        timer_group = f"timer_{code}"
+        room_group = f"room_{code}"
+        try:
+            for seconds_left in range(duration, -1, -1):
+                # If the task is cancelled, this will raise CancelledError and jump to except
+                await channel_layer.group_send(timer_group, {
+                    "type": "timer",
+                    "time_left": seconds_left,
+                    "total_duration": duration
+                })
+                await asyncio.sleep(1)
+
+            # finished normally
+            await channel_layer.group_send(room_group, {"type": "timer.finished"})
+
+        except asyncio.CancelledError:
+            # Clean up on cancellation: notify room that timer was stopped if desired
+            # (optional) we can send a final message; for now we quietly exit.
+            return
+        finally:
+            # remove from room_timers if still present
+            existing = self.room_timers.get(code)
+            if existing and existing.get('task') is asyncio.current_task():
+                try:
+                    del self.room_timers[code]
+                except KeyError:
+                    pass
+
     async def start_voting(self, event):
         await self.send(text_data=json.dumps({
             "type": "start_voting"
         }))
         
+    async def not_found(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "not_found"
+        }))

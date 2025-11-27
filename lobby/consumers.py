@@ -33,9 +33,15 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             action = data.get("action")
             if action == "join":
                 self.username = data.get("username")
+                print(self.username)
                 
-                await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
-
+                player = await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+                if not player:
+                    await self.channel_layer.group_send(self.chat_group_name, {
+                        "type": "not.found"
+                    })
+                    return
+                
                 # send full list
                 players = await sync_to_async(list)(Player.objects.filter(room=self.code))
                 await self.channel_layer.group_send(self.lobby_group_name, {
@@ -102,5 +108,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await sync_to_async(Room.objects.filter(code=self.code).update)(started=True)
         await self.send(text_data=json.dumps({
             "type": "start_game"
+        }))
+
+    async def not_found(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "not_found"
         }))
 # ...existing code...

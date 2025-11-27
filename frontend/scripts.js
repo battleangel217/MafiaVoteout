@@ -96,13 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if(!response.ok){
           const err = await response.json();
           if (response.status === 400){
-            console.log(err.room);
-
-            if(err.room){
-              document.getElementById('roomCodeError').style.display = "block";
-              document.getElementById('roomCodeError').innerText = "Room does not exist";
-              return;
-            }else if (err.username){
+            if (err.username){
               document.getElementById('joinUsernameError').style.display = "block";
               document.getElementById('joinUsernameError').innerText = "Username already taken";
               return;
@@ -112,7 +106,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }else if (response.status === 401){
             document.getElementById('roomCodeError').style.display = "block";
-            document.getElementById('roomCodeError').innerText = "Room full";
+            document.getElementById('roomCodeError').innerText = err.message;
+            return;
+          }else if (response.status === 404){
+            document.getElementById('roomCodeError').style.display = "block";
+            document.getElementById('roomCodeError').innerText = "Room does not exist";
             return;
           }
           throw new Error("Failed")
@@ -124,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }catch(error){
       alert("Can't connect to server")
-      console.log("Error", error.message)
+      console.log("Error", error)
     }
   })
 

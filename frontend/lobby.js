@@ -91,6 +91,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (data.type === 'start_game'){
       window.location.href = "voting.html"
     }
+
+    if (data.type === 'not_found'){
+      alert("Not a player. Redirecting to home page.");
+      window.location.href = "index.html";
+    }
   });
 
   ws.addEventListener('close', () => console.log('Socket closed'));

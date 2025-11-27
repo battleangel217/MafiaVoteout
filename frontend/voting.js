@@ -59,7 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Add chat message
         const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
-        addChatMessage("You", `voted for ${playerName.replace(" (You)", "")}`);
+        ws.send(JSON.stringify(
+          {
+            "action": "vote",
+            "votee": playerName
+          }
+        ));
       }
     })
     })
@@ -74,10 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'player_list') renderPlayers(data.players);
     if (data.type === 'player_left') {
       const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"]`);
-      // if (el) el.removeChild();
-      // const count = document.querySelectorAll('#playersList .player-item').length;
-      // document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
-      // nplayers --;
+      if (el) el.remove();
     }
 
 
@@ -111,8 +113,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (data.type === 'timer'){
       let timeLeft = data.time_left;
-
       timerElement.textContent = timeLeft;
+      // if (!isVoted){
+      //   document.querySelectorAll('.vote-btn').forEach((btn) => {
+      //   btn.disabled = false;
+      // })
+      // }else {
+      //   const layout = localStorage.getItem('votelayout')
+      //   document.querySelector('.players-list').innerHTML = layout;
+      // }
 
     // Add visual warnings
       if (timeLeft <= 5) {
@@ -129,10 +138,25 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    if (data.type === 'start_voting'){
-      document.querySelectorAll('.vote-btn').forEach((btn) => {
-        btn.disabled = false;
-      })
+    // if (data.type === 'start_voting'){
+      
+    // }
+
+    if (data.type === 'vote_recorded'){
+      let join_username = null;
+      if (data.voter === userinfo.username){
+        join_username = "You";
+      }else{
+        join_username = data.username;
+      }
+
+      const chatMessages = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.className = "system-message";
+      messageElement.innerText = `${join_username} voted for ${data.votee}`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
     }
 
     if (data.type === 'timer_finished'){
@@ -146,6 +170,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (data.type === 'start_game'){
       window.location.href = "voting.html";
+    }
+
+    if (data.type === 'not_found'){
+      alert("Not a player. Redirecting to home page.");
+      window.location.href = "index.html";
     }
   })
   ws.addEventListener('close', () => console.log('Socket closed'));
