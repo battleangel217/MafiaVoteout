@@ -293,7 +293,17 @@ body {
   transform: translateY(-2px);
 }
 
-.vote-results,
+.vote-results{
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 2rem;
+  text-align: center;
+  display: none;
+}
+
 .elimination-result {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);

@@ -40,6 +40,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    function renderVote(list){
+      const container = document.getElementById('resultsList');
+      container.innerHTML = '';
+
+      list.forEach(item => {
+        if (userinfo.username === item.username){
+          container.innerHTML += `
+            <div class="result-item">
+                <span class="result-name">${item.username} (You)</span>
+                <span class="result-votes">${item.vote} votes</span>
+            </div>`;
+        }else{
+          container.innerHTML += `
+            <div class="result-item">
+                <span class="result-name">${item.username}</span>
+                <span class="result-votes">${item.vote} votes</span>
+            </div>`;
+        }
+        
+      });
+    }
+
     document.querySelectorAll(".vote-btn").forEach((button) => {
     console.log('yoi');
     button.addEventListener("click", function () {
@@ -76,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = JSON.parse(ev.data);
     const timerElement = document.getElementById("timer");
     const timerContainer = document.getElementById("timerContainer")
-    if (data.type === 'player_list') renderPlayers(data.players);
+    if (data.type === 'player_list') renderPlayers(data.players); renderVote(data.players);
     if (data.type === 'player_left') {
       const el = document.querySelector(`#playersList .player-item[data-username="${data.player.username}"]`);
       if (el) el.remove();
@@ -173,8 +195,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (data.type === 'not_found'){
-      alert("Not a player. Redirecting to home page.");
+      alert("Not a player/Room. Redirecting to home page.");
       window.location.href = "index.html";
+    }
+
+    if (data.type === 'room_started'){
+      alert("Game has not started. Redirecting to lobby.");
+      window.location.href = "lobby.html";
     }
   })
   ws.addEventListener('close', () => console.log('Socket closed'));
@@ -253,9 +280,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Next round button
   document.getElementById("nextRoundBtn").addEventListener("click", () => {
-    window.location.href = "index.html";
+    document.getElementById("voteResults").style.display = "none";
+    document.getElementById("eliminationResult").style.display = "none";
+    ws.send(JSON.stringify({
+      "action":"start_timer"
+    }))
   })
 
+  if (userinfo.isAdmin){
+    document.getElementById("eliminationResult").style.display = 'block';
+    document.getElementById("nextRoundBtn").style.display = "block";
+  }else{
+    document.getElementById("eliminationResult").style.display = 'none';
+    document.getElementById("nextRoundBtn").style.display = "none";
+  }
 
   // Helper function to add chat messages
   function addChatMessage(username, message) {

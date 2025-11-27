@@ -21,6 +21,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         self.username = getattr(self, "username", None)
         if self.username:
             await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=False)
+            print("did this work?")
             await self.channel_layer.group_send(self.lobby_group_name, {
                 "type": "player.left",
                 "player": {"username": self.username}
@@ -64,6 +65,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     "message": message,
                 })
             elif action == "start_game":
+                random_player = await sync_to_async(lambda: Player.objects.filter(room=self.code).order_by('?').first())()
+
+                # Update the field
+                if random_player:
+                    random_player.is_mafia = True
+                    await sync_to_async(random_player.save)()
                 await self.channel_layer.group_send(self.lobby_group_name, {
                     "type": "start.game",
                 })

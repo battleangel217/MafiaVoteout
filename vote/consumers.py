@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from channels.db import database_sync_to_async
+from django.db.models import F
 
 class VotingConsumer(AsyncWebsocketConsumer):
     # Class-level dict to track timers per room
@@ -53,6 +54,18 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 print(self.code)
                 # mark player online
                 player = await self.get_players(self.username, self.code)
+                room = await self.get_room(self.code)
+                if not room:
+                    await self.channel_layer.group_send(self.room_group_name, {
+                        "type": "not.found"
+                    })
+                    return
+
+                if not room["started"]:
+                    await self.send(text_data=json.dumps({
+                        "type":"room_started"
+                    }))
+                    return
                 await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
 
                 if not player:
@@ -91,6 +104,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             elif action == "vote":
                 voter = self.username
                 votee = data.get("votee")
+                await sync_to_async(Player.objects.filter(username=votee, room=self.code).update)(vote=F('vote') + 1)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "vote.recorded",
                     "voter": voter,
@@ -173,6 +187,12 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
     async def timer_finished(self, event):
         """Handle timer completion"""
+        from Players.models import PlayerModel as Player
+        players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
+        await self.channel_layer.group_send(self.room_group_name, {
+            "type": "player.list",
+            "players": [p.as_dict() for p in players]
+        })
         await self.send(text_data=json.dumps({
             "type": "timer_finished"
         }))
@@ -225,3 +245,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
     def get_players(self, name, code):
         from Players.models import PlayerModel as Player
         return Player.objects.filter(username=name, room=code).values().first()
+    
+    @database_sync_to_async
+    def get_room(self, code):
+        from Rooms.models import RoomModel as Room
+        return Room.objects.filter(code=code).values().first()
