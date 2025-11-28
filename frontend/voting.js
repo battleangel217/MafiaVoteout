@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
   self.isvoted = localStorage.getItem('isVoted') || false;
-  self.isVoted = (str === "true");  
+  self.isVoted = (self.isVoted === "true");  
   self.votee = localStorage.getItem('votee') || null;
   document.querySelector('.room-code').innerText = `Room: ${code}`;
 
