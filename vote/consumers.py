@@ -113,6 +113,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     "votee": votee
                 })
                 
+            elif action == "game_over":
+                await self.delete_room(code=self.code)
+                
             elif action == "heartbeat":
                 # optional keepalive
                 pass
@@ -195,9 +198,24 @@ class VotingConsumer(AsyncWebsocketConsumer):
             "type": "player.list",
             "players": [p.as_dict() for p in players]
         })
-        await self.send(text_data=json.dumps({
-            "type": "timer_finished"
-        }))
+        await self.delete_user(self.eliminated_user)
+
+        check = await self.check_mafia(code=self.code)
+
+        if check:
+            await self.send(text_data=json.dumps({
+                "type": "timer_finished",
+                "message": f"You did not eliminate the mafia. {event["username"]} was not the mafia"
+            }))
+        else:
+           await self.send(text_data=json.dumps({
+                "type": "timer_finished",
+                "message": f"You eliminate the mafia. {event["username"]} was the mafia",
+                "end": True
+            })) 
+
+
+
 
     async def _run_voting_timer(self, code, duration, channel_layer):
         """Background task that sends timer ticks and finishes.
@@ -218,7 +236,12 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 await asyncio.sleep(1)
 
             # finished normally
-            await channel_layer.group_send(room_group, {"type": "timer.finished"})
+            self.eliminated_user = await self.get_highest_vote(self.code)
+            await self.channel_layer.group_send(room_group, {
+                "type": "timer.finished",
+                "username": self.eliminated_user
+            })
+
 
         except asyncio.CancelledError:
             # Clean up on cancellation: notify room that timer was stopped if desired
@@ -245,6 +268,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             "type": "not_found"
         }))
 
+
     @database_sync_to_async
     def get_players(self, name, code):
         from Players.models import PlayerModel as Player
@@ -270,3 +294,25 @@ class VotingConsumer(AsyncWebsocketConsumer):
         return Player.objects.filter(
             room=code
         ).update(vote=0)
+    
+    @database_sync_to_async
+    def get_highest_vote(self, code):
+        from Players.models import PlayerModel as Player
+        return Player.objects.filter(code=code).order_by("-vote").first().username
+    
+    @database_sync_to_async
+    def delete_user(self, username):
+        from Players.models import PlayerModel as Player
+        player = Player.objects.filter(username=username).first()
+        player.delete()
+
+    @database_sync_to_async
+    def check_mafia(self, code):
+        from Players.models import PlayerModel as Player
+        return Player.objects.filter(code=code, is_mafia=True)
+    
+    @database_sync_to_async
+    def delete_room(self, code):
+        from Rooms.models import RoomModel as Room
+        room = Room.objects.filter(code=code).first()
+        room.delete()

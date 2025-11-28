@@ -222,6 +222,17 @@ document.addEventListener("DOMContentLoaded", () => {
       timerContainer.className = "timer-container";
       document.getElementById("voteResults").style.display = "block";
       document.getElementById("eliminationResult").style.display = "block";
+      document.getElementById("resultMessage").innerText = data.message;
+
+      if (data.end){
+        alert("Game Over");
+        if (userinfo.isAdmin){
+          ws.send(JSON.stringify({"type": "game_over"}));
+        }
+        window.location.href = "index.html";
+        return;
+      }
+      
 
     }
 
