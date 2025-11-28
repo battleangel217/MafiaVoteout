@@ -234,6 +234,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     pass
 
     async def start_voting(self, event):
+        await self.reset_vote(code=self.code)
         await self.send(text_data=json.dumps({
             "type": "start_voting"
         }))
@@ -262,3 +263,10 @@ class VotingConsumer(AsyncWebsocketConsumer):
             username=votee,
             room=code
         ).update(vote=F('vote') + 1)
+    
+    @database_sync_to_async
+    def reset_vote(self, code):
+        from Players.models import PlayerModel as Player
+        return Player.objects.filter(
+            room=code
+        ).update(vote=0)
