@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
-  self.isvoted = localStorage.getItem('isVoted') || false;
-  // self.isVoted = (self.isVoted === "true");  
+  self.isVoted = localStorage.getItem('isVoted') || false;
+  self.isVoted = (self.isVoted === "true");  
   self.votee = localStorage.getItem('votee') || null;
   document.querySelector('.room-code').innerText = `Room: ${code}`;
 
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'timer'){
       let timeLeft = data.time_left;
       timerElement.textContent = timeLeft;
-      if (self.isVoted === "true"){
+      if (!self.isVoted){
         console.log("hello")
         document.querySelectorAll('.vote-btn').forEach((btn) => {
           btn.disabled = false;
