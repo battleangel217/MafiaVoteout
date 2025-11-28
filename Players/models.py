@@ -16,5 +16,6 @@ class PlayerModel(models.Model):
             "username": self.username,
             "isAdmin": self.is_admin,
             "online": self.online,
-            "isMafia": self.is_mafia
+            "isMafia": self.is_mafia,
+            "vote": self.vote
         }

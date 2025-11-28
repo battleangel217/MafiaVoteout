@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   userinfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
   code = userinfo.room || userinfo.code;
+  self.isvoted = localStorage.getItem('isVoted') || false;
+  self.votee = localStorage.getItem('votee') || null;
   document.querySelector('.room-code').innerText = `Room: ${code}`;
 
   // let timeLeft = 20;
@@ -60,6 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Add chat message
         const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
+        self.isVoted = true;
+        localStorage.setItem('isVoted', self.isVoted);
+        localStorage.setItem('votee', playerName);
         ws.send(JSON.stringify(
           {
             "action": "vote",
@@ -141,10 +146,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'timer'){
       let timeLeft = data.time_left;
       timerElement.textContent = timeLeft;
-      // if (!isVoted){
-      //   document.querySelectorAll('.vote-btn').forEach((btn) => {
-      //   btn.disabled = false;
-      // })
+      if (!isVoted){
+        document.querySelectorAll('.vote-btn').forEach((btn) => {
+          btn.disabled = false;
+        })
+      }else{
+        document.querySelectorAll('.vote-btn').forEach((btn) => {
+          btn.disabled = true;
+        });
+        
+        const playerDiv = document.querySelector(`.player-item[data-username="${self.votee}"]`);
+        if (playerDiv) {
+            const voteBtn = playerDiv.querySelector(".vote-btn");
+            if (voteBtn) voteBtn.classList.add("voted");
+        }
+      }
       // }else {
       //   const layout = localStorage.getItem('votelayout')
       //   document.querySelector('.players-list').innerHTML = layout;
@@ -165,9 +181,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // if (data.type === 'start_voting'){
-      
-    // }
+    if (data.type === 'start_voting'){
+      const chatMessages = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.className = "system-message";
+      messageElement.innerText = `Voting has Started!`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
     if (data.type === 'vote_recorded'){
       let join_username = null;
