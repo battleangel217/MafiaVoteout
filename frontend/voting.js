@@ -91,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="result-votes">${item.vote} votes</span>
             </div>`;
         }
+        console.log(item);
         
       });
   }
