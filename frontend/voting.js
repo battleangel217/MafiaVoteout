@@ -149,8 +149,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let timeLeft = data.time_left;
       timerElement.textContent = timeLeft;
       if (!self.isVoted){
-        console.log("hello")
-        document.querySelectorAll('.vote-btn').forEach((btn) => {
+        document.querySelectorAll(".vote-btn").forEach((btn) => {
+          btn.classList.remove("voted");
+          btn.textContent = "Vote";
           btn.disabled = false;
         })
       }else{
@@ -161,8 +162,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const playerDiv = document.querySelector(`.player-item[data-username="${self.votee}"]`);
         if (playerDiv) {
-            const voteBtn = playerDiv.querySelector(".vote-btn");
-            if (voteBtn) voteBtn.classList.add("voted");
+          const voteBtn = playerDiv.querySelector(".vote-btn");
+          if (voteBtn) voteBtn.classList.add("voted"); voteBtn.innerText = "Voted"
         }
       }
       // }else {
@@ -186,6 +187,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (data.type === 'start_voting'){
+      self.isVoted = false;
+      self.votee = null;
+      localStorage.setItem('isVoted', self.isVoted)
+      localStorage.setItem('votee', self.votee)
       const chatMessages = document.getElementById("chatMessages");
       const messageElement = document.createElement("div");
       messageElement.className = "system-message";
