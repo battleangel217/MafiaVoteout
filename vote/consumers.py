@@ -106,7 +106,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             elif action == "vote":
                 voter = self.username
                 votee = data.get("votee")
-                await sync_to_async(Player.objects.filter(username=votee, room=self.code).update)(vote=F('vote') + 1)
+                await self.increment_vote(votee, self.code)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "vote.recorded",
                     "voter": voter,
@@ -253,3 +253,12 @@ class VotingConsumer(AsyncWebsocketConsumer):
     def get_room(self, code):
         from Rooms.models import RoomModel as Room
         return Room.objects.filter(code=code).values().first()
+    
+
+    @database_sync_to_async
+    def increment_vote(self, votee, code):
+        from Players.models import PlayerModel as Player
+        return Player.objects.filter(
+            username=votee,
+            room=code
+        ).update(vote=F('vote') + 1)

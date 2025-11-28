@@ -61,14 +61,15 @@ document.addEventListener("DOMContentLoaded", () => {
         
 
         // Add chat message
-        const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
+        // const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
+        const username = this.closest(".player-item").dataset.username;
         self.isVoted = true;
         localStorage.setItem('isVoted', self.isVoted);
-        localStorage.setItem('votee', playerName);
+        localStorage.setItem('votee', username);
         ws.send(JSON.stringify(
           {
             "action": "vote",
-            "votee": playerName
+            "votee": username
           }
         ));
       }
