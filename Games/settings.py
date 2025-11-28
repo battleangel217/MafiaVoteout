@@ -104,11 +104,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Games.wsgi.application'
 ASGI_APPLICATION = 'Games.asgi.application'
+REDIS_URL = "redis://red-d4ku5aggjchc73adrh3g:6379"
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+        "CONFIG": {
+            "hosts": [REDIS_URL],
+        }
     },
 }
 
