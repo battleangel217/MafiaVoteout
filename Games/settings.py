@@ -31,14 +31,21 @@ SECRET_KEY = 'django-insecure-80_+40xg$_)_4*4%+ajcht9n+=y7&*(p3#7mwa_3i!u0j*ta50
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'mafiavoteout-backend.onrender.com',
+    '127.0.0.1',
+    'localhost',
+]
+
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:5502',
     'http://localhost:5502',
     'http://127.0.0.1:8000',
     'http://localhost:8000',
+    'https://mafiavoteout-backend.onrender.com',
 ]
+
 
 
 # Application definition
@@ -58,7 +65,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'uvicorn',
-    'vote'
+    'vote',
+    'health'
 ]
 
 MIDDLEWARE = [
