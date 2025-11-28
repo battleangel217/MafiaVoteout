@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'timer'){
       let timeLeft = data.time_left;
       timerElement.textContent = timeLeft;
-      if (!isVoted){
+      if (!self.isVoted){
         document.querySelectorAll('.vote-btn').forEach((btn) => {
           btn.disabled = false;
         })
