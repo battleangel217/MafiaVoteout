@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
   // const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/lobby/${code}/`);
-  const ws = new WebSocket(`ws://127.0.0.1:8000//ws/lobby/${code}/`);
+  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/lobby/${code}/`);
 
   // Sends join message
   ws.addEventListener('open', () => {
