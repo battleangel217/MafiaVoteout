@@ -398,6 +398,6 @@ def delete_room(code):
 @database_sync_to_async
 def store_message(code, message):
     from vote.models import MessageModel as Message
-    Message.objects.create(code_id=code, message=message)
+    Message.objects.create(room_id=code, message=message)
     return
 
