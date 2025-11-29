@@ -10,11 +10,13 @@ body {
   min-height: 100vh;
   color: #fff;
   padding: 1rem;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%; /* Ensure it doesn't exceed viewport */
 }
 
 .header {
@@ -120,6 +122,8 @@ body {
   border-radius: 15px;
   padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%; /* Prevent overflow */
+  max-width: 100%; /* Ensure it doesn't exceed container */
 }
 
 .voting-section h2,
@@ -144,6 +148,8 @@ body {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  gap: 0.5rem;
 }
 
 .player-item:hover {
@@ -155,11 +161,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .player-name {
   font-weight: bold;
   font-size: 1.1rem;
+  word-break: break-word; /* Prevent long names from overflowing */
 }
 
 .player-role {
@@ -207,11 +215,13 @@ body {
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
   margin-bottom: 1rem;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  word-wrap: break-word; /* Wrap long words */
   /* Custom Scrollbar Styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 107, 107, 0.6) rgba(255, 255, 255, 0.1);
@@ -222,6 +232,8 @@ body {
   padding: 0.5rem;
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.05);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .you-chat-message{
@@ -230,6 +242,8 @@ body {
   border-radius: 5px;
   background: rgba(255, 217, 0, 0.37);
   text-align: right;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .chat-message .username {
@@ -265,6 +279,7 @@ body {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   font-size: 1rem;
+  min-width: 0; /* Allow input to shrink below content size */
 }
 
 .chat-input-container input:focus {
@@ -286,6 +301,7 @@ body {
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .chat-input-container button:hover {
@@ -429,20 +445,106 @@ body {
 }
 
 @media (max-width: 768px) {
+  body {
+    padding: 0.5rem; /* Reduce padding on mobile */
+  }
+
   .game-layout {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
 
   .header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem; /* Smaller title */
   }
 
   .timer {
     font-size: 2rem;
   }
 
+  .timer-container {
+    padding: 0.75rem;
+  }
+
+  .voting-section,
+  .chat-section {
+    padding: 1rem; /* Reduce padding */
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .chat-section {
+    height: 350px; /* Taller on mobile for better chat experience */
+    min-height: 350px;
+  }
+
+  .player-item {
+    padding: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .player-info {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .vote-btn {
+    width: 100%; /* Full width buttons on mobile */
+    padding: 0.75rem;
+  }
+
+  .chat-input-container {
+    flex-wrap: nowrap;
+  }
+
+  .chat-input-container input {
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+
+  .chat-input-container button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .result-message {
+    font-size: 1.2rem;
+    padding: 1.5rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .timer {
+    font-size: 1.5rem;
+  }
+
+  .voting-section,
+  .chat-section {
+    padding: 0.75rem;
+  }
+
   .chat-section {
     height: 300px;
+    min-height: 300px;
+  }
+
+  .player-name {
+    font-size: 1rem;
+  }
+
+  .chat-input-container button {
+    padding: 0.6rem 0.8rem;
   }
 }

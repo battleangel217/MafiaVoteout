@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
   // const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
-  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`);
+  const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
   // console.log(ws.send(JSON.stringify({ action: 'join', username: userinfo.username})));
 
   ws.addEventListener('open', () => {
@@ -222,18 +222,30 @@ document.addEventListener("DOMContentLoaded", () => {
       timerElement.textContent = 120;
       timerElement.className = "timer";
       timerContainer.className = "timer-container";
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+
       document.getElementById("voteResults").style.display = "block";
       document.getElementById("eliminationResult").style.display = "block";
       document.getElementById("resultMessage").innerText = data.message;
 
       if (data.end){
         ws.send(JSON.stringify({"type": "game_over"}));
-        alert("Game Over");
-        window.location.href = "index.html";
-        return;
-      }
+        setTimeout(() => {
+          alert("Game Over");
+          window.location.href = "index.html";
+        }, 10000);
+          return;
+        }
       
-
+      // Auto-start timer after 20 seconds
+      setTimeout(() => {
+        ws.send(JSON.stringify({
+          "action":"start_timer"
+        }));
+      }, 20000);
     }
 
     if (data.type === 'start_game'){

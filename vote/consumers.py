@@ -53,14 +53,14 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 print(self.username)
                 print(self.code)
                 # mark player online
-                player = await self.get_players(self.username, self.code)
-                room = await self.get_room(self.code)
+                player = await get_players(self.username, self.code)
+                room = await get_room(self.code)
                 print(room)
                 if not room:
                     print("hey")
-                    await self.channel_layer.group_send(self.room_group_name, {
-                        "type": "not.found"
-                    })
+                    await self.send(text_data=json.dumps({
+                        "type": "not_found"
+                    }))
                     return
 
                 if not room["started"]:
@@ -71,9 +71,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
 
                 if not player:
-                    await self.channel_layer.group_send(self.chat_group_name, {
-                        "type": "not.found"
-                    })
+                    await self.send(text_data=json.dumps({
+                        "type": "not_found"
+                    }))
                     return
 
                 
@@ -106,7 +106,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             elif action == "vote":
                 voter = self.username
                 votee = data.get("votee")
-                await self.increment_vote(votee, self.code)
+                await increment_vote(votee, self.code)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "vote.recorded",
                     "voter": voter,
@@ -114,7 +114,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 })
                 
             elif action == "game_over":
-                await self.delete_room(code=self.code)
+                await delete_room(code=self.code)
                 
             elif action == "heartbeat":
                 # optional keepalive
@@ -170,49 +170,52 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
     async def start_voting_timer(self, duration):
         """Start a synchronized voting timer for the room"""
-        timer_key = f"timer_{self.code}"
-        # If there is an existing timer for the room started by someone else, cancel it
+        # Check if there's already an active timer for this room
         existing = self.room_timers.get(self.code)
         if existing:
             task = existing.get('task')
-            # cancel previous task
+            # If timer is still running, don't start a new one
             if task and not task.done():
-                task.cancel()
-
+                await self.send(text_data=json.dumps({
+                    "type": "timer_already_running",
+                    "message": "A timer is already running for this room"
+                }))
+                return
+        
         # announce start (non-blocking)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "start.voting"
         })
 
         # create and store a background task that runs the countdown
-        # store the owner so we can cancel it on disconnect from that connection
         loop = asyncio.get_running_loop()
         task = loop.create_task(self._run_voting_timer(self.code, duration, self.channel_layer))
         self.room_timers[self.code] = {'task': task, 'owner': self.channel_name, 'duration': duration}
 
     async def timer_finished(self, event):
         """Handle timer completion"""
+        print("helloooo word")
         from Players.models import PlayerModel as Player
         players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "player.list",
             "players": [p.as_dict() for p in players]
         })
-        await self.delete_user(self.eliminated_user)
+        await delete_user(event["username"])
 
-        check = await self.check_mafia(code=self.code)
+        check = await check_mafia(code=self.code)
 
         if check:
             await self.send(text_data=json.dumps({
                 "type": "timer_finished",
-                "message": f"You did not eliminate the mafia. {event["username"]} was not the mafia"
+                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia"
             }))
         else:
-           await self.send(text_data=json.dumps({
-                "type": "timer_finished",
-                "message": f"You eliminate the mafia. {event["username"]} was the mafia",
-                "end": True
-            })) 
+            await self.send(text_data=json.dumps({
+                    "type": "timer_finished",
+                    "message": f"You eliminate the mafia. {event['username']} was the mafia",
+                    "end": True
+                }))
 
 
 
@@ -235,8 +238,12 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 })
                 await asyncio.sleep(1)
 
+            print("hiiii")
+
             # finished normally
-            self.eliminated_user = await self.get_highest_vote(self.code)
+            self.eliminated_user = await get_highest_vote(self.code)
+            print(self.eliminated_user)
+            print("debugg")
             await self.channel_layer.group_send(room_group, {
                 "type": "timer.finished",
                 "username": self.eliminated_user
@@ -244,6 +251,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
 
         except asyncio.CancelledError:
+            print("Task endeddd")
             # Clean up on cancellation: notify room that timer was stopped if desired
             # (optional) we can send a final message; for now we quietly exit.
             return
@@ -257,7 +265,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     pass
 
     async def start_voting(self, event):
-        await self.reset_vote(code=self.code)
+        await reset_vote(code=self.code)
         await self.send(text_data=json.dumps({
             "type": "start_voting"
         }))
@@ -269,50 +277,61 @@ class VotingConsumer(AsyncWebsocketConsumer):
         }))
 
 
-    @database_sync_to_async
-    def get_players(self, name, code):
-        from Players.models import PlayerModel as Player
-        return Player.objects.filter(username=name, room=code).values().first()
-    
-    @database_sync_to_async
-    def get_room(self, code):
-        from Rooms.models import RoomModel as Room
-        return Room.objects.filter(code=code).values().first()
-    
+@database_sync_to_async
+def get_players(name, code):
+    from Players.models import PlayerModel as Player
+    return Player.objects.filter(username=name, room=code).values().first()
 
-    @database_sync_to_async
-    def increment_vote(self, votee, code):
-        from Players.models import PlayerModel as Player
-        return Player.objects.filter(
-            username=votee,
-            room=code
-        ).update(vote=F('vote') + 1)
-    
-    @database_sync_to_async
-    def reset_vote(self, code):
-        from Players.models import PlayerModel as Player
-        return Player.objects.filter(
-            room=code
-        ).update(vote=0)
-    
-    @database_sync_to_async
-    def get_highest_vote(self, code):
-        from Players.models import PlayerModel as Player
-        return Player.objects.filter(code=code).order_by("-vote").first().username
-    
-    @database_sync_to_async
-    def delete_user(self, username):
-        from Players.models import PlayerModel as Player
-        player = Player.objects.filter(username=username).first()
-        player.delete()
+@database_sync_to_async
+def get_room(code):
+    from Rooms.models import RoomModel as Room
+    return Room.objects.filter(code=code).values().first()
 
-    @database_sync_to_async
-    def check_mafia(self, code):
-        from Players.models import PlayerModel as Player
-        return Player.objects.filter(code=code, is_mafia=True)
+
+@database_sync_to_async
+def increment_vote(votee, code):
+    from Players.models import PlayerModel as Player
+    return Player.objects.filter(
+        username=votee,
+        room=code
+    ).update(vote=F('vote') + 1)
+
+@database_sync_to_async
+def reset_vote(code):
+    from Players.models import PlayerModel as Player
+    return Player.objects.filter(
+        room=code
+    ).update(vote=0)
+
+@database_sync_to_async
+def get_highest_vote(code):
+    from Players.models import PlayerModel as Player
+    p = Player.objects.filter(room=code).order_by("-vote")
     
-    @database_sync_to_async
-    def delete_room(self, code):
-        from Rooms.models import RoomModel as Room
-        room = Room.objects.filter(code=code).first()
-        room.delete()
+    if p.count() > 1:
+        # Check if there's a tie (multiple players with same highest vote)
+        highest_vote = p.first().vote
+        if p.filter(vote=highest_vote).count() > 1:
+            return "None"
+    
+    if p.exists():
+        return p.first().username
+    
+    return "None"
+
+@database_sync_to_async
+def delete_user(username):
+    from Players.models import PlayerModel as Player
+    Player.objects.filter(username=username).delete()
+    return
+
+@database_sync_to_async
+def check_mafia(code):
+    from Players.models import PlayerModel as Player
+    return Player.objects.filter(room=code, is_mafia=True).exists()
+
+@database_sync_to_async
+def delete_room(code):
+    from Rooms.models import RoomModel as Room
+    Room.objects.filter(code=code).delete()
+    return

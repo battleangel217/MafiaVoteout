@@ -10,11 +10,13 @@ body {
   min-height: 100vh;
   color: #fff;
   padding: 1rem;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%; /* Ensure it doesn't exceed viewport */
 }
 
 .header {
@@ -34,6 +36,7 @@ body {
   justify-content: center;
   gap: 2rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap; /* Allow wrapping */
 }
 
 .room-code,
@@ -68,6 +71,8 @@ body {
   border-radius: 15px;
   padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%; /* Prevent overflow */
+  max-width: 100%; /* Ensure it doesn't exceed container */
 }
 
 .players-section h2,
@@ -92,6 +97,8 @@ body {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  gap: 0.5rem;
 }
 
 .player-item:hover {
@@ -108,11 +115,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .player-name {
   font-weight: bold;
   font-size: 1.1rem;
+  word-break: break-word; /* Prevent long names from overflowing */
 }
 
 .player-badge {
@@ -158,6 +167,8 @@ body {
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 5px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .info-label {
@@ -167,6 +178,7 @@ body {
 .info-value {
   color: #4ecdc4;
   font-weight: bold;
+  word-break: break-word;
 }
 
 .admin-controls {
@@ -225,6 +237,8 @@ body {
   border-radius: 15px;
   padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%; /* Prevent overflow */
+  max-width: 100%; /* Ensure it doesn't exceed container */
 }
 
 .chat-section h3 {
@@ -236,11 +250,13 @@ body {
 .chat-messages {
   height: 200px;
   overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
   margin-bottom: 1rem;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  word-wrap: break-word; /* Wrap long words */
   /* Custom Scrollbar Styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 107, 107, 0.6) rgba(255, 255, 255, 0.1);
@@ -251,6 +267,8 @@ body {
   padding: 0.5rem;
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.05);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .you-chat-message{
@@ -259,6 +277,8 @@ body {
   border-radius: 5px;
   background: rgba(255, 217, 0, 0.37);
   text-align: right;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .chat-message .username {
@@ -294,6 +314,7 @@ body {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   font-size: 1rem;
+  min-width: 0; /* Allow input to shrink below content size */
 }
 
 .chat-input-container input:focus {
@@ -315,6 +336,7 @@ body {
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .chat-input-container button:hover {
@@ -343,6 +365,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  body {
+    padding: 0.5rem; /* Reduce padding on mobile */
+  }
+
   .lobby-content {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -350,18 +376,76 @@ body {
 
   .room-info {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
+    align-items: center;
   }
 
   .header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+
+  .players-section,
+  .controls-section,
+  .chat-section {
+    padding: 1rem; /* Reduce padding */
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .chat-messages {
+    height: 180px; /* Slightly shorter on mobile */
+  }
+
+  .chat-input-container {
+    flex-wrap: nowrap;
+  }
+
+  .chat-input-container input {
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+
+  .chat-input-container button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .player-item {
+    padding: 0.75rem;
+  }
+
+  .btn {
+    padding: 0.85rem;
+    font-size: 1rem;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .players-section,
+  .controls-section,
+  .chat-section {
+    padding: 0.75rem;
   }
 
   .chat-messages {
     height: 150px;
   }
 
-  .chat-input-container{
-    width: 2px;
+  .player-name {
+    font-size: 1rem;
+  }
+
+  .chat-input-container button {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .btn {
+    font-size: 0.95rem;
   }
 }
