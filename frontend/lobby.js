@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderPlayers(list) {
     const container = document.getElementById('playersList');
     container.innerHTML = '';
-    document.querySelector('.player-count').innerText = `Players: ${list.length}/8`;
+    document.querySelector('.player-count').innerText = `Players: ${list.length}/15`;
     self.nplayers = list.length;
     list.forEach(item => {
       let status = null;
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         el.style.color = 'red'
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
-      document.querySelector('.player-count').innerText = `Players: ${count-1}/8`;
+      document.querySelector('.player-count').innerText = `Players: ${count-1}/15`;
 
       let join_username = null;
       if (data.player.username === userinfo.username){
