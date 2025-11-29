@@ -124,7 +124,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             
                 
             elif action == "start_timer":
-                duration = data.get("duration", 70)  # default 70 seconds
+                duration = data.get("duration", 120)  # default 70 seconds
                 # spawn the timer as a background task so we don't block receive()
                 await self.start_voting_timer(duration)
                 

@@ -24,7 +24,7 @@ class PlayerViews(APIView):
         except RoomModel.DoesNotExist:
             return Response({'message': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)
             
-        if player_count.count() > 7:
+        if player_count.count() > 15:
             return Response({"message":"Room full"}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = PlayerSerializer(data=request.data)
         if serializer.is_valid():
