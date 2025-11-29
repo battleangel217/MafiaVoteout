@@ -100,6 +100,26 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     "username": self.username,
                     "message": message,
                 })
+
+                if "@idara" in message.lower():
+                    try:
+                        # Run the AI call in a thread pool to avoid blocking
+                        response = await asyncio.to_thread(self._get_ai_response, self.code)
+                        
+                        # Send AI response to all users in the chat group
+                        await self.channel_layer.group_send(self.chat_group_name, {
+                            "type": "chat.message",
+                            "username": "Idaraobong(AI Bot)",
+                            "message": response,
+                        })
+                    except Exception as e:
+                        print(f"AI response error: {e}")
+                        await self.send(text_data=json.dumps({
+                            "type": "chat_message",
+                            "username": "Idaraobong(AI Bot)",
+                            "message": "Sorry, I encountered an error while processing your request.",
+                        }))
+            
                 
             elif action == "start_timer":
                 duration = data.get("duration", 70)  # default 70 seconds
@@ -156,25 +176,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             "message": message,
         }))
 
-        if "@idara" in message.lower():
-            try:
-                # Run the AI call in a thread pool to avoid blocking
-                response = await asyncio.to_thread(self._get_ai_response, self.code)
-                
-                # Send AI response to all users in the chat group
-                await self.channel_layer.group_send(self.chat_group_name, {
-                    "type": "chat.message",
-                    "username": "Idaraobong(AI Bot)",
-                    "message": response,
-                })
-            except Exception as e:
-                print(f"AI response error: {e}")
-                await self.send(text_data=json.dumps({
-                    "type": "chat_message",
-                    "username": "Idaraobong(AI Bot)",
-                    "message": "Sorry, I encountered an error while processing your request.",
-                }))
-    
+        
     def _get_ai_response(self, code):
         """Synchronous helper to get AI response"""
         from django.db import connection
