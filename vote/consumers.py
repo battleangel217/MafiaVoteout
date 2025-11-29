@@ -5,6 +5,9 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from channels.db import database_sync_to_async
 from django.db.models import F
+from google import generativeai as genai
+
+genai.configure(api_key="AIzaSyDPa1wXAoB2r4065o2YP3h64NrIg0MaJy0")
 
 class VotingConsumer(AsyncWebsocketConsumer):
     # Class-level dict to track timers per room
@@ -142,11 +145,67 @@ class VotingConsumer(AsyncWebsocketConsumer):
         )
 
     async def chat_message(self, event):
+        message = event["message"]
+        username = event["username"]
+        message_format = f"{username}: {message}"
+        await store_message(self.code, message_format)
+        
         await self.send(text_data=json.dumps({
             "type": "chat_message",
-            "username": event["username"],
-            "message": event["message"],
+            "username": username,
+            "message": message,
         }))
+
+        if "@idara" in message.lower():
+            try:
+                # Run the AI call in a thread pool to avoid blocking
+                response = await asyncio.to_thread(self._get_ai_response, self.code)
+                
+                # Send AI response to all users in the chat group
+                await self.channel_layer.group_send(self.chat_group_name, {
+                    "type": "chat.message",
+                    "username": "Idaraobong(AI Bot)",
+                    "message": response,
+                })
+            except Exception as e:
+                print(f"AI response error: {e}")
+                await self.send(text_data=json.dumps({
+                    "type": "chat_message",
+                    "username": "Idaraobong(AI Bot)",
+                    "message": "Sorry, I encountered an error while processing your request.",
+                }))
+    
+    def _get_ai_response(self, code):
+        """Synchronous helper to get AI response"""
+        from django.db import connection
+        
+        # Ensure we have a fresh database connection in this thread
+        connection.close()
+        
+        try:
+            model = genai.GenerativeModel("gemini-2.0-flash-exp")
+            
+            # Get messages synchronously in this thread
+            from Rooms.models import RoomModel as Room
+            room = Room.objects.filter(code=code).first()
+            
+            if not room:
+                return "Sorry, I couldn't find the room messages."
+            
+            messages = room.get_messages()
+            
+            chat = model.start_chat(history=messages)
+            response = chat.send_message(
+                "There is a mafia among these group of people. From all these messages "
+                "who do you think is the mafia (check for people acting suspicious)? "
+                "You must give me a person's name and a reason in the format: "
+                "'I think the mafia is [person's name], because [your reason]'"
+            )
+            
+            return response.text
+        except Exception as e:
+            print(f"Error in _get_ai_response: {e}")
+            return f"Sorry, I encountered an error: {str(e)}"
 
     # group message handlers:
     async def player_list(self, event):
@@ -335,3 +394,10 @@ def delete_room(code):
     from Rooms.models import RoomModel as Room
     Room.objects.filter(code=code).delete()
     return
+
+@database_sync_to_async
+def store_message(code, message):
+    from vote.models import MessageModel as Message
+    Message.objects.create(code_id=code, message=message)
+    return
+

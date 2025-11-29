@@ -1,27 +1,5 @@
-Project TODO
-===========
+1) I want to create a message database that stores users messages
 
-1) Persist voting permission across refresh
-	- Ensure a user who refreshes the page can still cast a vote if they haven't already.
-	- Implementation: backend endpoint returns whether the current player has already voted this round; frontend (`frontend/voting.js`, `voting.html`) fetches this on page load and enables/disables voting UI. Prefer server-side storage of vote status; localStorage can be a fallback.
-	- Files to check: `vote/models.py`, `vote/views.py`, `frontend/voting.js`, `voting.html`.
+2) I want to store all the messages in the database
 
-2) Voting summary
-	- Add a voting summary view that shows aggregated vote counts (and optionally anonymized voter info).
-	- Implementation: endpoint for aggregated counts and frontend component to display them; consider live updates via websockets (`vote/consumers.py`).
-
-3) Player elimination
-	- Implement elimination of players after voting results are applied.
-	- Implementation: server-side logic to compute elimination at round end, mark `PlayerModel` as eliminated, notify clients over websockets, and update UI so eliminated players cannot vote/participate.
-	- Files to check: `Players/models.py`, `Players/serializers.py`, `Players/consumers.py`, room/game state in `Rooms` or `Games`.
-
-4) Start round / Next round button
-	- Add a host-only control (button) to start the round or progress to the next round.
-	- Implementation: endpoint or websocket command that updates room/game state and broadcasts new round to clients. Add UI in `lobby.html`/`voting.html` and guard it by host permissions.
-
-5) Integrate AI in the chat (nice to have)
-	- Optional: integrate an AI assistant into the chat for role-playing or suggestions.
-	- Implementation: configurable backend integration using an API key (env var) or local model, endpoint to relay messages to the AI, and display AI replies in chat UI. Add toggle and rate-limiting; consider privacy implications.
-
--- End of TODO
-
+3) I want to only display the ai response when asked

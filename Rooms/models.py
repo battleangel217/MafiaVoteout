@@ -10,3 +10,6 @@ class RoomModel(models.Model):
 
     def __str__(self):
         return self.username
+
+    def get_messages(self):
+        return list(self.room.values_list("message", flat=True))
