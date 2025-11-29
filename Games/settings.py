@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-80_+40xg$_)_4*4%+ajcht9n+=y7&*(p3#7mwa_3i!u0j*ta50'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -104,7 +104,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Games.wsgi.application'
 ASGI_APPLICATION = 'Games.asgi.application'
-REDIS_URL = "redis://red-d4ku5aggjchc73adrh3g:6379"
+REDIS_URL = os.getenv('REDIS_URL')
 
 CHANNEL_LAYERS = {
     "default": {

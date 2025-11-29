@@ -6,8 +6,11 @@ from django.core.cache import cache
 from channels.db import database_sync_to_async
 from django.db.models import F
 from google import generativeai as genai
+import dotenv
+import os
+dotenv.load_dotenv()
 
-genai.configure(api_key="AIzaSyDPa1wXAoB2r4065o2YP3h64NrIg0MaJy0")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class VotingConsumer(AsyncWebsocketConsumer):
     # Class-level dict to track timers per room
