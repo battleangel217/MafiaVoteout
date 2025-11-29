@@ -192,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       self.votee = null;
       localStorage.setItem('isVoted', self.isVoted)
       localStorage.setItem('votee', self.votee)
+      location.reload();
       const chatMessages = document.getElementById("chatMessages");
       const messageElement = document.createElement("div");
       messageElement.className = "system-message";
@@ -226,10 +227,8 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("resultMessage").innerText = data.message;
 
       if (data.end){
+        ws.send(JSON.stringify({"type": "game_over"}));
         alert("Game Over");
-        if (userinfo.isAdmin){
-          ws.send(JSON.stringify({"type": "game_over"}));
-        }
         window.location.href = "index.html";
         return;
       }
