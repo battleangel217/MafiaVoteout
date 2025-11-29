@@ -8,7 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
-  const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
+  // const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
+  const ws = new WebSocket(`ws://127.0.0.1:8000//ws/voting/${code}/`);
   // console.log(ws.send(JSON.stringify({ action: 'join', username: userinfo.username})));
 
   ws.addEventListener('open', () => {
@@ -204,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.voter === userinfo.username){
         join_username = "You";
       }else{
-        join_username = data.username;
+        join_username = data.voter;
       }
 
       const chatMessages = document.getElementById("chatMessages");
