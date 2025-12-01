@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   self.isVoted = localStorage.getItem('isVoted') || false;
   self.isVoted = (self.isVoted === "true");  
   self.votee = localStorage.getItem('votee') || null;
+  self.hasKilled = localStorage.getItem('hasKilled') || false;
+  self.hasKilled = (self.hasKilled === "true")
   document.querySelector('.room-code').innerText = `Room: ${code}`;
 
   // let timeLeft = 20;
@@ -21,6 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById('playersList');
     container.innerHTML = '';
 
+    // Check if current user is mafia
+    const currentPlayer = list.find(p => p.username === userinfo.username);
+    const isMafia = currentPlayer && currentPlayer.isMafia;
+
     // loop to render each player
     list.forEach(item => {
       if (userinfo.username === item.username){
@@ -34,43 +40,66 @@ document.addEventListener("DOMContentLoaded", () => {
             <button class="vote-btn" disabled>Vote</button>
           </div>`;
       }else{
+        const buttonText = isMafia ? 'Kill' : 'Vote';
+        const buttonEnabled = isMafia ? '' : 'disabled';
         container.innerHTML += `
           <div class="player-item" data-username="${item.username}">
             <div class="player-info">
               <span class="player-name">${item.username}</span>
             </div>
-            <button class="vote-btn" disabled>Vote</button>
+            <button class="vote-btn" ${buttonEnabled}>${buttonText}</button>
           </div>`;
       }
     });
+
+    if (self.hasKilled){
+      document.querySelectorAll(".vote-btn").forEach((button) => {
+        button.disabled = true;
+      })
+    }
 
 
     document.querySelectorAll(".vote-btn").forEach((button) => {
     console.log('yoi');
     button.addEventListener("click", function () {
       if (!this.disabled) {
+        const buttonText = this.textContent;
+        const isKillAction = buttonText === "Kill";
+        
         // Reset all buttons
         document.querySelectorAll(".vote-btn").forEach((btn) => {
           btn.classList.remove("voted");
-          btn.textContent = "Vote";
+          if (isKillAction) {
+            btn.textContent = "Kill";
+          } else {
+            btn.textContent = "Vote";
+          }
           btn.disabled = true;
         })
 
-        // Mark this button as voted
+        // Mark this button as voted/killed
         this.classList.add("voted");
-        this.textContent = "Voted";
+        if (isKillAction) {
+          this.textContent = "Killed";
+          self.hasKilled = true;
+          localStorage.setItem('hasKilled', self.hasKilled);
+        } else {
+          this.textContent = "Voted";
+          self.isVoted = true;
+          localStorage.setItem('isVoted', self.isVoted);
+        }
         this.disabled = true;
         
 
         // Add chat message
         // const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
         const username = this.closest(".player-item").dataset.username;
-        self.isVoted = true;
-        localStorage.setItem('isVoted', self.isVoted);
         localStorage.setItem('votee', username);
+        
+        // Send appropriate action based on button type
         ws.send(JSON.stringify(
           {
-            "action": "vote",
+            "action": isKillAction ? "kill" : "vote",
             "votee": username
           }
         ));
@@ -155,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.textContent = "Vote";
           btn.disabled = false;
         })
-      }else{
+      }else if (self.isVoted){
         console.log("did ts work")
         document.querySelectorAll('.vote-btn').forEach((btn) => {
           btn.disabled = true;
@@ -166,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const voteBtn = playerDiv.querySelector(".vote-btn");
           if (voteBtn) voteBtn.classList.add("voted"); voteBtn.innerText = "Voted"
         }
-      }
+      } 
       // }else {
       //   const layout = localStorage.getItem('votelayout')
       //   document.querySelector('.players-list').innerHTML = layout;
@@ -249,6 +278,26 @@ document.addEventListener("DOMContentLoaded", () => {
           "action":"start_timer"
         }));
       }, 20000);
+    }
+
+    if (data.type === 'killed'){
+      let join_username = null;
+      if (data.killed === userinfo.username){
+        join_username = "You";
+        alert("Sorry gng. You were killed by the mafia");
+        setTimeout(() => {
+          window.location.href = "index.html"
+        }, 5000);
+      }else{
+        join_username = data.killed;
+      }
+
+      const chatMessages = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.className = "system-message";
+      messageElement.innerText = `${join_username} was killed by the mafia`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     if (data.type === 'start_game'){
