@@ -137,6 +137,14 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     "voter": voter,
                     "votee": votee
                 })
+
+            elif action == "kill":
+                killed = data.get("votee")
+                await delete_user(killed)
+                await self.channel_layer.group_send(self.room_group_name, {
+                    "type": "killed",
+                    "username": killed
+                })
                 
             elif action == "game_over":
                 await delete_room(code=self.code)
@@ -229,6 +237,12 @@ class VotingConsumer(AsyncWebsocketConsumer):
             "type": "vote_recorded",
             "voter": event.get("voter"),
             "votee": event.get("votee")
+        }))
+
+    async def killed(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "killed",
+            "killed": event["username"]
         }))
 
     async def start_voting_timer(self, duration):
