@@ -7,21 +7,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatMessages = document.getElementById("chatMessages")
 
   // Responses for common questions
-  const responses = {
-    role: "There are 4 roles: Mafia (hidden killers), Detective (investigator), Doctor (protector), and Villager (innocent). Each has different abilities!",
-    win: "Town wins if all mafia are eliminated. Mafia wins if they equal or outnumber the innocent players.",
-    strategy:
-      "Listen to discussions, observe voting patterns, and ask questions. Don't trust everyone! As mafia, create alibis.",
-    mafia: "Mafia members vote during the day and eliminate innocents at night. They know each other's identities.",
-    detective:
-      "Detectives can investigate one player per night to learn their role. Share info strategically during the day.",
-    doctor: "Doctors protect one player per night from being eliminated. You can protect yourself!",
-    day: "During the day, all players discuss and vote to eliminate someone they think is mafia.",
-    night: "At night, mafia kills, detective investigates, and doctor protects. Innocent players wait.",
-    vote: "The player with the most votes during the day is eliminated and their role is revealed.",
-    default:
-      "I can help! Ask about roles, winning conditions, strategy, or specific phases like day/night. What would you like to know?",
-  }
+  // const responses = {
+  //   role: "There are 4 roles: Mafia (hidden killers), Detective (investigator), Doctor (protector), and Villager (innocent). Each has different abilities!",
+  //   win: "Town wins if all mafia are eliminated. Mafia wins if they equal or outnumber the innocent players.",
+  //   strategy:
+  //     "Listen to discussions, observe voting patterns, and ask questions. Don't trust everyone! As mafia, create alibis.",
+  //   mafia: "Mafia members vote during the day and eliminate innocents at night. They know each other's identities.",
+  //   detective:
+  //     "Detectives can investigate one player per night to learn their role. Share info strategically during the day.",
+  //   doctor: "Doctors protect one player per night from being eliminated. You can protect yourself!",
+  //   day: "During the day, all players discuss and vote to eliminate someone they think is mafia.",
+  //   night: "At night, mafia kills, detective investigates, and doctor protects. Innocent players wait.",
+  //   vote: "The player with the most votes during the day is eliminated and their role is revealed.",
+  //   default:
+  //     "I can help! Ask about roles, winning conditions, strategy, or specific phases like day/night. What would you like to know?",
+  // }
 
   // Toggle chat modal
   chatBubble.addEventListener("click", () => {
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 
   // Send message
-  function sendMessage() {
+  async function sendMessage() {
     const message = chatInput.value.trim()
     if (!message) return
 
@@ -57,32 +57,58 @@ document.addEventListener("DOMContentLoaded", () => {
     chatMessages.scrollTop = chatMessages.scrollHeight
 
     // Get response
-    let response = responses.default
-    const lowerMessage = message.toLowerCase()
+    // let response = responses.default
+    // for (const key in responses) {
+    //   if (lowerMessage.includes(key)) {
+    //     response = responses[key]
+    //     break
+    //   }
+    // }
 
-    for (const key in responses) {
-      if (lowerMessage.includes(key)) {
-        response = responses[key]
-        break
-      }
+    const data = {
+      "message": message
     }
 
-    // Add bot response after a delay
-    setTimeout(() => {
+    try{
+      const response = await fetch('https://mafiavoteout-backend.onrender.com/api/v1/aiagent/',
+        {
+          method: "POST",
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+
+        const res = await response.json();
+        const aiResponse = res.message; 
+
+        typingBubble.remove()
+
+        const botMessage = document.createElement("div")
+        botMessage.className = "chat-message bot-message"
+        botMessage.innerHTML = `<p>${aiResponse}</p>`
+        chatMessages.appendChild(botMessage)
+        chatMessages.scrollTop = chatMessages.scrollHeight
+
+        chatMessages.scrollTop = chatMessages.scrollHeight
+    }catch(error){
       typingBubble.remove()
 
       const botMessage = document.createElement("div")
       botMessage.className = "chat-message bot-message"
-      botMessage.innerHTML = `<p>${response}</p>`
+      botMessage.innerHTML = `<p>Can't connect to server</p>`
       chatMessages.appendChild(botMessage)
       chatMessages.scrollTop = chatMessages.scrollHeight
-    }, 300)
 
-    chatMessages.scrollTop = chatMessages.scrollHeight
+      chatMessages.scrollTop = chatMessages.scrollHeight
+      console.log("Error", error.message)
+    }
+
+
+    // Add bot response after a delay
+   
   }
 
   chatSend.addEventListener("click", sendMessage)
-  chatInput.addEventListener("keypress", (e) => {
+  chatInput.addEventListener("keypress", async (e) => {
     if (e.key === "Enter") {
       sendMessage()
     }
