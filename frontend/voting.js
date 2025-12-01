@@ -227,11 +227,14 @@ document.addEventListener("DOMContentLoaded", () => {
         behavior: 'smooth'
       });
 
+      const results =  document.getElementById("resultMessage");
+      results.className = "result-message failure";
       document.getElementById("voteResults").style.display = "block";
       document.getElementById("eliminationResult").style.display = "block";
-      document.getElementById("resultMessage").innerText = data.message;
+      results.innerText = data.message;
 
       if (data.end){
+        results.className = "result-message success";
         ws.send(JSON.stringify({"type": "game_over"}));
         setTimeout(() => {
           alert("Game Over");

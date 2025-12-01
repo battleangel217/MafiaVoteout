@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Rooms - Mafia Voteout</title>
+    <link rel="stylesheet" href="rooms-list.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-link">← Back</a>
+            <h1>Available Rooms</h1>
+            <p>Browse and join public rooms</p>
+        </div>
+
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="Search by room code or username..." class="search-input">
+            <!-- <select id="filterType" class="filter-select">
+                <option value="">All Rooms</option>
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+            </select> -->
+        </div>
+
+        <div class="rooms-grid" id="roomsGrid">
+            <!-- Sample rooms data -->
+            <!-- <div class="room-card">
+                <div class="room-header">
+                    <h3>Room: ABC123</h3>
+                    <span class="room-badge public">Public</span>
+                </div>
+                <div class="room-info">
+                    <p><strong>Admin:</strong> Player1</p>
+                    <p><strong>Players:</strong> 4/8</p>
+                    <p><strong>Status:</strong> Waiting for players</p>
+                </div>
+                <button class="btn-join-room">Join Room</button>
+            </div>
+
+            <div class="room-card">
+                <div class="room-header">
+                    <h3>Room: XYZ789</h3>
+                    <span class="room-badge public">Public</span>
+                </div>
+                <div class="room-info">
+                    <p><strong>Admin:</strong> MafiaKing</p>
+                    <p><strong>Players:</strong> 6/8</p>
+                    <p><strong>Status:</strong> Almost full</p>
+                </div>
+                <button class="btn-join-room">Join Room</button>
+            </div>
+
+            <div class="room-card">
+                <div class="room-header">
+                    <h3>Room: DEF456</h3>
+                    <span class="room-badge private">Private</span>
+                </div>
+                <div class="room-info">
+                    <p><strong>Admin:</strong> ShadowPlayer</p>
+                    <p><strong>Players:</strong> 5/6</p>
+                    <p><strong>Status:</strong> In Game</p>
+                </div>
+                <button class="btn-join-room" disabled>Cannot Join</button>
+            </div>
+
+            <div class="room-card">
+                <div class="room-header">
+                    <h3>Room: GHI321</h3>
+                    <span class="room-badge public">Public</span>
+                </div>
+                <div class="room-info">
+                    <p><strong>Admin:</strong> GameMaster</p>
+                    <p><strong>Players:</strong> 3/8</p>
+                    <p><strong>Status:</strong> Waiting for players</p>
+                </div>
+                <button class="btn-join-room">Join Room</button>
+            </div> -->
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <p>No rooms found. Create one or check back later!</p>
+            <a href="index.html" class="btn btn-create-room">Create a Room</a>
+        </div>
+    </div>
+
+    <script src="rooms-list.js"></script>
+</body>
+</html>
