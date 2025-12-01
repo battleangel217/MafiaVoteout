@@ -1,5 +1,11 @@
 // Basic form interactions - no complex logic
 document.addEventListener("DOMContentLoaded", () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomCode = urlParams.get('code');
+
+  if (roomCode){
+    document.getElementById('roomCode').value = roomCode.replace('Room: ', '');
+  }
   // Show room code display when create form is submitted
   document.getElementById("createRoomForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -11,8 +17,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const status = document.getElementById("roomType").value;
+
     const data = {
       username: username,
+      status: status
       // isAdmin: true
     };
 
