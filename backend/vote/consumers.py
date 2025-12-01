@@ -283,26 +283,26 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
         check = await check_mafia(code=self.code)
 
-        if check:
+        if not check:  # Mafia was eliminated
             await self.send(text_data=json.dumps({
                 "type": "timer_finished",
-                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
-                "username": event["username"]
+                "message": f"You eliminated the mafia. {event['username']} was the mafia",
+                "username": event["username"],
+                "end": True
             }))
-
-        elif check and len(players) < 3:
+        elif len(players) < 3:
             await self.send(text_data=json.dumps({
                 "type": "timer_finished",
                 "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
                 "username": event["username"],
                 "end": True
             }))
-        else:
+        else:  # Mafia still exists, game continues
             await self.send(text_data=json.dumps({
-                    "type": "timer_finished",
-                    "message": f"You eliminate the mafia. {event['username']} was the mafia",
-                    "end": True
-                }))
+                "type": "timer_finished",
+                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
+                "username": event["username"]
+            }))
 
 
 
