@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Play - Mafia Voteout</title>
+    <link rel="stylesheet" href="how-to-play.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-link">← Back</a>
+            <h1>How to Play</h1>
+        </div>
+
+        <div class="content">
+            <div class="rules-section">
+                <h2>Game Overview</h2>
+                <p>Mafia Voteout is a social deduction game where players try to find and eliminate the mafia members through discussion and voting, while the mafia tries to eliminate all innocent players.</p>
+            </div>
+
+            <div class="rules-section">
+                <h2>Roles</h2>
+                <div class="role-card">
+                    <h3>Mafia</h3>
+                    <p>Hidden members who know each other. During the day, vote with everyone else. At night, secretly eliminate an innocent player.</p>
+                </div>
+                <div class="role-card">
+                    <h3>Villager</h3>
+                    <p>Innocent player with no special abilities. Vote during the day to eliminate suspected mafia members.</p>
+                </div>
+            </div>
+
+            <div class="rules-section">
+                <h2>Game Flow</h2>
+                <ol>
+                    <li><strong>Day Phase:</strong> All players discuss and vote to eliminate someone they think is mafia.</li>
+                    <li><strong>Elimination:</strong> The player with the most votes is eliminated.</li>
+                    <li><strong>Night Phase:</strong> Mafia chooses an innocent to eliminate.</li>
+                    <li><strong>Repeat:</strong> Continue until mafia is eliminated or they equal innocents.</li>
+                </ol>
+            </div>
+
+            <div class="rules-section">
+                <h2>Winning Conditions</h2>
+                <div class="win-condition">
+                    <h3>Town Wins</h3>
+                    <p>The mafia is eliminated through voting.</p>
+                </div>
+                <div class="win-condition">
+                    <h3>Mafia Wins</h3>
+                    <p>Mafia members equal innocent players.</p>
+                </div>
+            </div>
+
+            <div class="rules-section">
+                <h2>Tips & Strategy</h2>
+                <ul>
+                    <li>Listen carefully to what other players say and look for inconsistencies.</li>
+                    <li>Pay attention to voting patterns and alliances.</li>
+                    <!-- <li>Don't reveal your role too early unless necessary.</li> -->
+                    <li>Mafia should create alibis and blend in with innocents.</li>
+                    <!-- <li>Detectives should investigate quietly and share information strategically.</li> -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Bubble -->
+    <div class="chat-bubble-container">
+        <button class="chat-bubble" id="chatBubble" aria-label="Open AI chat">
+            <span>💬</span>
+        </button>
+        <div class="chat-modal" id="chatModal">
+            <div class="chat-header">
+                <h3>Mafia Guide</h3>
+                <button class="close-chat" id="closeChat">&times;</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message bot-message">
+                    <p>Hi! I'm your Mafia Guide. Ask me anything about the game rules, strategies, or roles!</p>
+                </div>
+            </div>
+            <div class="chat-input-group">
+                <input type="text" id="chatInput" placeholder="Ask me anything..." class="chat-input">
+                <button class="chat-send" id="chatSend">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="how-to-play.js"></script>
+</body>
+</html>

@@ -148,10 +148,16 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.divider span {
+.divider a {
   padding: 0 1rem;
   font-weight: bold;
   color: #ccc;
+  text-decoration: none;
+}
+
+.divider a:hover{
+  transform: translateY(-1px);
+  color: #ff6b6b;
 }
 
 .error-message {

@@ -41,10 +41,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTimeout(() => {
           console.log("Fuck you");    
+          localStorage.setItem('userinfo', JSON.stringify(res));
+          window.location.href='lobby.html';
         }, 20000);
         
-        localStorage.setItem('userinfo', JSON.stringify(res));
-        window.location.href='lobby.html';
     }catch(error){
       alert("Can't connect to server")
       console.log("Error", error.message);}
