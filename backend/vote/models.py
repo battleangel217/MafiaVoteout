@@ -4,4 +4,4 @@ from Rooms.models import RoomModel
 
 class MessageModel(models.Model):
     room = models.ForeignKey(RoomModel, on_delete=models.CASCADE, related_name="room")
-    message = models.CharField(max_length=255)
+    message = models.TextField()
