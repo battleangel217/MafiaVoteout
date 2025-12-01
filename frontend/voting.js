@@ -262,6 +262,14 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("eliminationResult").style.display = "block";
       results.innerText = data.message;
 
+      if (data.username === userinfo.username){
+        alert("Sorry gng. You were voted out");
+        setTimeout(() => {
+          window.location.href = "index.html"
+        }, 5000);
+      }
+
+
       if (data.end){
         results.className = "result-message success";
         ws.send(JSON.stringify({"type": "game_over"}));
