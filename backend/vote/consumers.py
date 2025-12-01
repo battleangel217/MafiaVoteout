@@ -195,7 +195,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
         connection.close()
         
         try:
-            model = genai.GenerativeModel("gemini-2.5-flash")
+            model = genai.GenerativeModel("gemini-2.0-flash")
             
             # Get messages synchronously in this thread
             from Rooms.models import RoomModel as Room
@@ -212,6 +212,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 "who do you think is the mafia (check for people acting suspicious)? "
                 "You must give me a person's name and a reason in the format: "
                 "'I think the mafia is [person's name], because [your reason]'"
+                "Your answer must be very short and brief and precised"
             )
             
             return response.text
@@ -282,17 +283,26 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
         check = await check_mafia(code=self.code)
 
-        if check:
+        if not check:  # Mafia was eliminated
             await self.send(text_data=json.dumps({
                 "type": "timer_finished",
-                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia"
+                "message": f"You eliminated the mafia. {event['username']} was the mafia",
+                "username": event["username"],
+                "end": True
             }))
-        else:
+        elif len(players) < 3:
             await self.send(text_data=json.dumps({
-                    "type": "timer_finished",
-                    "message": f"You eliminate the mafia. {event['username']} was the mafia",
-                    "end": True
-                }))
+                "type": "timer_finished",
+                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
+                "username": event["username"],
+                "end": True
+            }))
+        else:  # Mafia still exists, game continues
+            await self.send(text_data=json.dumps({
+                "type": "timer_finished",
+                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
+                "username": event["username"]
+            }))
 
 
 
