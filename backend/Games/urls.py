@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/v1/', include([
         path('room/', include('Rooms.urls')),
         path('player/', include('Players.urls')),
-        path('health/', include('health.urls'))
+        path('health/', include('health.urls')),
+        path('aiagent/', include('aichat.urls'))
     ]))
 ]

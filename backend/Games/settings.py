@@ -68,7 +68,8 @@ INSTALLED_APPS = [
     'channels',
     'uvicorn',
     'vote',
-    'health'
+    'health',
+    'aichat'
 ]
 
 MIDDLEWARE = [

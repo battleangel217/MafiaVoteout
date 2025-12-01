@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.db.models import Count
 from rest_framework.views import APIView, Response, status
 from Players.models import *
 from .serializers import RoomSerializer
@@ -61,3 +62,11 @@ class RoomViews(APIView):
         roomdata = get_object_or_404(RoomModel, code=data["code"])
         roomdata.delete()
         return Response({"message":"Room closed"}, status=status.HTTP_200_OK)
+
+
+class AllRooms(APIView):
+    def get(self, request):
+        data = RoomModel.objects.filter(status="public").annotate(player_count=Count('room_code'))
+        serializer = RoomSerializer(data, many=True)
+
+        return Response(serializer.data, status=200)
