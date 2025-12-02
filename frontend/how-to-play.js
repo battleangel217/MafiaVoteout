@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const res = await response.json();
-        const aiResponse = res.message; 
+        const aiResponse = marked.parse(res.message); 
 
         typingBubble.remove()
 

@@ -195,7 +195,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
         connection.close()
         
         try:
-            model = genai.GenerativeModel("gemini-2.0-flash")
+            model = genai.GenerativeModel("gemini-2.5-flash")
             
             # Get messages synchronously in this thread
             from Rooms.models import RoomModel as Room
