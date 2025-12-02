@@ -29,7 +29,7 @@ class AIAgent(APIView):
         Be concise and clear and SHORT/BREIF
         """
         try:
-            model = genai.GenerativeModel("gemini-2.0-flash")
+            model = genai.GenerativeModel("gemini-2.5-flash")
             ai_response = model.generate_content(prompt).text
 
             return Response({"message": ai_response}, status=200)
