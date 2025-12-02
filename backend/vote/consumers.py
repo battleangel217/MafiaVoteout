@@ -214,9 +214,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             'I think the mafia is [person's name], because [your reason]'
             Your answer must be very short and brief and precised
             """
-            response = chat.send_message(
-                
-            )
+            response = chat.send_message(prompt)
             
             return response.text
         except Exception as e:
