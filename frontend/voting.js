@@ -285,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ws.send(JSON.stringify({
           "action":"start_timer"
         }));
-      }, 20000);
+      }, 70000);
     }
 
     if (data.type === 'killed'){

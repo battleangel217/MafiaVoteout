@@ -207,13 +207,14 @@ class VotingConsumer(AsyncWebsocketConsumer):
             messages = room.get_messages()
             
             chat = model.start_chat(history=messages)
-            response = chat.send_message(
-                "There is a mafia among these group of people. From all these messages "
-                "who do you think is the mafia (check for people acting suspicious)? "
-                "You must give me a person's name and a reason in the format: "
-                "'I think the mafia is [person's name], because [your reason]'"
-                "Your answer must be very short and brief and precised"
-            )
+            prompt = """
+            There is a mafia among these group of people. From all these messages 
+            who do you think is the mafia (check for people acting suspicious)? 
+            You must give me a person's name and a reason in the format: 
+            'I think the mafia is [person's name], because [your reason]'
+            Your answer must be very short and brief and precised
+            """
+            response = chat.send_message(prompt)
             
             return response.text
         except Exception as e:
