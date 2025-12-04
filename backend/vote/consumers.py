@@ -8,6 +8,8 @@ from django.db.models import F
 from google import generativeai as genai
 # from django.conf import settings
 import os
+import markdown
+from bs4 import BeautifulSoup
 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -215,8 +217,11 @@ class VotingConsumer(AsyncWebsocketConsumer):
             Your answer must be very short and brief and precised
             """
             response = chat.send_message(prompt)
+            html = markdown.markdown(response.text)
+
+            ai_res = BeautifulSoup(html, "html.parser")
             
-            return response.text
+            return ai_res
         except Exception as e:
             print(f"Error in _get_ai_response: {e}")
             return f"Sorry, I encountered an error: {str(e)}"
