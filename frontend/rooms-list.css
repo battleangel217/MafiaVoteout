@@ -201,6 +201,35 @@ body {
   margin-bottom: 1rem;
 }
 
+/* Added loading skeleton styles */
+.loading-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  height: 200px;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
 .btn-create-room {
   display: inline-block;
   padding: 0.75rem 2rem;

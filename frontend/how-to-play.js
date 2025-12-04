@@ -37,6 +37,15 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBubble.classList.remove("active")
   })
 
+  document.addEventListener("click", (event) => {
+    if (!chatModal.contains(event.target) && !chatBubble.contains(event.target)) {
+      if (chatModal.classList.contains("active")) {
+        chatModal.classList.remove("active")
+        chatBubble.classList.remove("active")
+      }
+    }
+  })
+
   // Send message
   async function sendMessage() {
     const message = chatInput.value.trim()
@@ -78,13 +87,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const res = await response.json();
-        const aiResponse = marked.parse(res.message); 
-
+        const aiResponse = marked.parse(res.message);
+        console.log(aiResponse);
         typingBubble.remove()
 
         const botMessage = document.createElement("div")
         botMessage.className = "chat-message bot-message"
-        botMessage.innerHTML = `<p>${aiResponse}</p>`
+        botMessage.innerHTML = aiResponse
         chatMessages.appendChild(botMessage)
         chatMessages.scrollTop = chatMessages.scrollHeight
 

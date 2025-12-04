@@ -4,7 +4,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const roomsGrid = document.getElementById("roomsGrid")
   const emptyState = document.getElementById("emptyState")
 
+
   try{
+    const loadingSkeleton = roomsGrid.querySelectorAll(".loading-skeleton");
     const response = await fetch('https://mafiavoteout-backend.onrender.com/api/v1/room/all',
       {
         method: "GET",
@@ -17,6 +19,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const res = await response.json();
+    loadingSkeleton.forEach((item) => {
+      item.remove();
+    })
     const rooms = document.querySelector('.rooms-grid')
 
     res.forEach((item) => {
