@@ -78,13 +78,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const res = await response.json();
-        const aiResponse = marked.parse(res.message); 
-
+        const aiResponse = marked.parse(res.message);
+        console.log(aiResponse);
         typingBubble.remove()
 
         const botMessage = document.createElement("div")
         botMessage.className = "chat-message bot-message"
-        botMessage.innerHTML = `<p>${aiResponse}</p>`
+        botMessage.innerHTML = aiResponse
         chatMessages.appendChild(botMessage)
         chatMessages.scrollTop = chatMessages.scrollHeight
 
