@@ -10,6 +10,7 @@ from google import generativeai as genai
 import os
 import markdown
 from bs4 import BeautifulSoup
+from redis_storage.redis_cache import get_redis_cache, clear_players_cache
 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -40,7 +41,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
         from Players.models import PlayerModel as Player
         self.username = getattr(self, "username", None)
         if self.username:
-            await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=False)
+            await update_player_and_rebuild_cache(self.username, self.code, online=False)
             await self.channel_layer.group_send(self.room_group_name, {
                 "type": "player.left",
                 "player": {"username": self.username}
@@ -75,21 +76,22 @@ class VotingConsumer(AsyncWebsocketConsumer):
                         "type":"room_started"
                     }))
                     return
-                await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
-
+                
                 if not player:
                     await self.send(text_data=json.dumps({
                         "type": "not_found"
                     }))
                     return
+                
+                await update_player_and_rebuild_cache(self.username, self.code, online=True)
 
                 
                 # send full list
-                players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
+                players = await get_redis_cache(self.code, online_only=True)
                 print(players)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "player.list",
-                    "players": [p.as_dict() for p in players]
+                    "players": players
                 })
 
                 await self.channel_layer.group_send(self.chat_group_name, {
@@ -279,11 +281,10 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def timer_finished(self, event):
         """Handle timer completion"""
         print("helloooo word")
-        from Players.models import PlayerModel as Player
-        players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
+        players = await get_redis_cache(self.code, online_only=True)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "player.list",
-            "players": [p.as_dict() for p in players]
+            "players": players
         })
         await delete_user(event["username"])
 
@@ -384,10 +385,22 @@ def get_room(code):
 @database_sync_to_async
 def increment_vote(votee, code):
     from Players.models import PlayerModel as Player
-    return Player.objects.filter(
+
+    p = Player.objects.filter(
         username=votee,
         room=code
     ).update(vote=F('vote') + 1)
+
+    # Rebuild cache (this OVERWRITES old cache automatically)
+    players = list(Player.objects.filter(room=code, online=True))
+    player_dicts = [p.as_dict() for p in players]
+    
+    cache_key = f'players_room_{code}:online'
+    cache.set(cache_key, player_dicts, timeout=60)
+    cache_key = f'players_room_{code}'
+    cache.set(cache_key, player_dicts, timeout=60)
+
+    return p
 
 @database_sync_to_async
 def reset_vote(code):
@@ -413,9 +426,19 @@ def get_highest_vote(code):
     return "None"
 
 @database_sync_to_async
-def delete_user(username):
+def delete_user(username, code):
     from Players.models import PlayerModel as Player
     Player.objects.filter(username=username).delete()
+
+    # Rebuild cache (this OVERWRITES old cache automatically)
+    players = list(Player.objects.filter(room=code, online=True))
+    player_dicts = [p.as_dict() for p in players]
+    
+    cache_key = f'players_room_{code}:online'
+    cache.set(cache_key, player_dicts, timeout=60)
+    cache_key = f'players_room_{code}'
+    cache.set(cache_key, player_dicts, timeout=60)
+
     return
 
 @database_sync_to_async
@@ -435,3 +458,19 @@ def store_message(code, message):
     Message.objects.create(room_id=code, message=message)
     return
 
+
+@database_sync_to_async
+def update_player_and_rebuild_cache(username, code, online=False):
+    from Players.models import PlayerModel as Player
+    
+    # Update database
+    Player.objects.filter(username=username, room=code).update(online=online)
+    
+    # Rebuild cache (this OVERWRITES old cache automatically)
+    players = list(Player.objects.filter(room=code, online=True))
+    player_dicts = [p.as_dict() for p in players]
+    
+    cache_key = f'players_room_{code}:online'
+    cache.set(cache_key, player_dicts, timeout=60)
+    cache_key = f'players_room_{code}'
+    cache.set(cache_key, player_dicts, timeout=60)

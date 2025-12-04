@@ -3,6 +3,8 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
+from django.core.cache import cache
+from redis_storage.redis_cache import clear_players_cache, get_redis_cache
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -20,8 +22,8 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         from Players.models import PlayerModel as Player
         self.username = getattr(self, "username", None)
         if self.username:
-            await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=False)
             print("did this work?")
+            await update_player_and_rebuild_cache(self.username, self.code, online=False)
             await self.channel_layer.group_send(self.lobby_group_name, {
                 "type": "player.left",
                 "player": {"username": self.username}
@@ -37,8 +39,8 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             if action == "join":
                 self.username = data.get("username")
                 print(self.username)
-                
-                player = await sync_to_async(Player.objects.filter(username=self.username, room=self.code).update)(online=True)
+                await update_player_and_rebuild_cache(self.username, self.code, online=True)
+                player = await get_players(self.username, self.code)
                 print(player)
                 if not player:
                     await self.channel_layer.group_send(self.chat_group_name, {
@@ -47,10 +49,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     return
                 
                 # send full list
-                players = await sync_to_async(list)(Player.objects.filter(room=self.code))
+                players = await get_redis_cache(self.code)
                 await self.channel_layer.group_send(self.lobby_group_name, {
                     "type": "player.list",
-                    "players": [p.as_dict() for p in players]
+                    "players": players
                 })
 
                 await self.channel_layer.group_send(self.chat_group_name, {
@@ -124,4 +126,25 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "not_found"
         }))
-# ...existing code...
+
+
+@database_sync_to_async
+def update_player_and_rebuild_cache(username, code, online=False):
+    from Players.models import PlayerModel as Player
+    
+    # Update database
+    Player.objects.filter(username=username, room=code).update(online=online)
+    
+    # Rebuild cache (this OVERWRITES old cache automatically)
+    players = list(Player.objects.filter(room=code, online=True))
+    player_dicts = [p.as_dict() for p in players]
+    
+    cache_key = f'players_room_{code}:online'
+    cache.set(cache_key, player_dicts, timeout=60)
+    cache_key = f'players_room_{code}'
+    cache.set(cache_key, player_dicts, timeout=60)
+
+@database_sync_to_async
+def get_players(name, code):
+    from Players.models import PlayerModel as Player
+    return Player.objects.filter(username=name, room=code).values().first()
