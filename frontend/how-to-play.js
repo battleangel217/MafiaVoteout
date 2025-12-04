@@ -37,6 +37,15 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBubble.classList.remove("active")
   })
 
+  document.addEventListener("click", (event) => {
+    if (!chatModal.contains(event.target) && !chatBubble.contains(event.target)) {
+      if (chatModal.classList.contains("active")) {
+        chatModal.classList.remove("active")
+        chatBubble.classList.remove("active")
+      }
+    }
+  })
+
   // Send message
   async function sendMessage() {
     const message = chatInput.value.trim()
