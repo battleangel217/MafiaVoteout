@@ -69,7 +69,8 @@ INSTALLED_APPS = [
     'uvicorn',
     'vote',
     'health',
-    'aichat'
+    'aichat',
+    'redis_storage',
 ]
 
 MIDDLEWARE = [
@@ -114,6 +115,13 @@ CHANNEL_LAYERS = {
             "hosts": [REDIS_URL],
         }
     },
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+    }
 }
 
 
