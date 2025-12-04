@@ -135,14 +135,16 @@ def update_player_and_rebuild_cache(username, code, online=False):
     # Update database
     Player.objects.filter(username=username, room=code).update(online=online)
     
-    # Rebuild cache (this OVERWRITES old cache automatically)
-    players = list(Player.objects.filter(room=code, online=True))
-    player_dicts = [p.as_dict() for p in players]
+    # Rebuild cache for online players
+    online_players = list(Player.objects.filter(room=code, online=True))
+    online_player_dicts = [p.as_dict() for p in online_players]
+
+    cache.set(f'room_players_{code}:online', online_player_dicts, timeout=60)
     
-    cache_key = f'players_room_{code}:online'
-    cache.set(cache_key, player_dicts, timeout=60)
-    cache_key = f'players_room_{code}'
-    cache.set(cache_key, player_dicts, timeout=60)
+    # Rebuild cache for all players
+    all_players = list(Player.objects.filter(room=code))
+    all_player_dicts = [p.as_dict() for p in all_players]
+    cache.set(f'room_players_{code}', all_player_dicts, timeout=60)
 
 @database_sync_to_async
 def get_players(name, code):
