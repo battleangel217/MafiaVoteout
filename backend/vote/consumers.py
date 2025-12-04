@@ -144,7 +144,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
             elif action == "kill":
                 killed = data.get("votee")
-                await delete_user(killed)
+                await delete_user(killed, self.code)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "killed",
                     "username": killed
@@ -182,7 +182,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
         message = event["message"]
         username = event["username"]
         message_format = f"{username}: {message}"
-        await store_message(self.code, message_format)
+        
+        # Fire and forget - don't block on message storage
+        asyncio.create_task(sync_to_async(store_message)(self.code, message_format))
         
         await self.send(text_data=json.dumps({
             "type": "chat_message",
@@ -286,7 +288,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
             "type": "player.list",
             "players": players
         })
-        await delete_user(event["username"])
+        await delete_user(event["username"], self.code)
 
         check = await check_mafia(code=self.code)
 
@@ -391,14 +393,15 @@ def increment_vote(votee, code):
         room=code
     ).update(vote=F('vote') + 1)
 
-    # Rebuild cache (this OVERWRITES old cache automatically)
-    players = list(Player.objects.filter(room=code, online=True))
-    player_dicts = [p.as_dict() for p in players]
+    # Rebuild cache for online players
+    online_players = list(Player.objects.filter(room=code, online=True))
+    online_player_dicts = [p.as_dict() for p in online_players]
+    cache.set(f'room_players_{code}:online', online_player_dicts, timeout=60)
     
-    cache_key = f'players_room_{code}:online'
-    cache.set(cache_key, player_dicts, timeout=60)
-    cache_key = f'players_room_{code}'
-    cache.set(cache_key, player_dicts, timeout=60)
+    # Rebuild cache for all players
+    all_players = list(Player.objects.filter(room=code))
+    all_player_dicts = [p.as_dict() for p in all_players]
+    cache.set(f'room_players_{code}', all_player_dicts, timeout=60)
 
     return p
 
@@ -430,14 +433,15 @@ def delete_user(username, code):
     from Players.models import PlayerModel as Player
     Player.objects.filter(username=username).delete()
 
-    # Rebuild cache (this OVERWRITES old cache automatically)
-    players = list(Player.objects.filter(room=code, online=True))
-    player_dicts = [p.as_dict() for p in players]
+    # Rebuild cache for online players
+    online_players = list(Player.objects.filter(room=code, online=True))
+    online_player_dicts = [p.as_dict() for p in online_players]
+    cache.set(f'room_players_{code}:online', online_player_dicts, timeout=60)
     
-    cache_key = f'players_room_{code}:online'
-    cache.set(cache_key, player_dicts, timeout=60)
-    cache_key = f'players_room_{code}'
-    cache.set(cache_key, player_dicts, timeout=60)
+    # Rebuild cache for all players
+    all_players = list(Player.objects.filter(room=code))
+    all_player_dicts = [p.as_dict() for p in all_players]
+    cache.set(f'room_players_{code}', all_player_dicts, timeout=60)
 
     return
 
@@ -466,11 +470,12 @@ def update_player_and_rebuild_cache(username, code, online=False):
     # Update database
     Player.objects.filter(username=username, room=code).update(online=online)
     
-    # Rebuild cache (this OVERWRITES old cache automatically)
-    players = list(Player.objects.filter(room=code, online=True))
-    player_dicts = [p.as_dict() for p in players]
+    # Rebuild cache for online players
+    online_players = list(Player.objects.filter(room=code, online=True))
+    online_player_dicts = [p.as_dict() for p in online_players]
+    cache.set(f'room_players_{code}:online', online_player_dicts, timeout=60)
     
-    cache_key = f'players_room_{code}:online'
-    cache.set(cache_key, player_dicts, timeout=60)
-    cache_key = f'players_room_{code}'
-    cache.set(cache_key, player_dicts, timeout=60)
+    # Rebuild cache for all players
+    all_players = list(Player.objects.filter(room=code))
+    all_player_dicts = [p.as_dict() for p in all_players]
+    cache.set(f'room_players_{code}', all_player_dicts, timeout=60)
