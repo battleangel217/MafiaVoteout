@@ -105,6 +105,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     "message": message,
                 })
 
+                message_format = f"{self.username}: {message}"
+                await store_message(self.code, message_format)
+
                 if "@idara" in message.lower():
                     try:
                         # Run the AI call in a thread pool to avoid blocking
@@ -119,7 +122,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     except Exception as e:
                         print(f"AI response error: {e}")
                         await self.send(text_data=json.dumps({
-                            "type": "chat_message",
+                            "type": "chat.message",
                             "username": "Idaraobong(AI Bot)",
                             "message": "Sorry, I encountered an error while processing your request.",
                         }))
@@ -179,8 +182,6 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event["message"]
         username = event["username"]
-        message_format = f"{username}: {message}"
-        await store_message(self.code, message_format)
         
         await self.send(text_data=json.dumps({
             "type": "chat_message",
