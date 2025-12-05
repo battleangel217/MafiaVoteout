@@ -110,6 +110,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 asyncio.create_task(sync_to_async(store_message)(self.code, message_format))
 
 
+                message_format = f"{self.username}: {message}"
+                await store_message(self.code, message_format)
+
                 if "@idara" in message.lower():
                     try:
                         # Run the AI call in a thread pool to avoid blocking
