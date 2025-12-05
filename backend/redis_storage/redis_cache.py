@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from channels.db import database_sync_to_async
-from Players.models import PlayerModel as Player
+
 
 
 @database_sync_to_async
@@ -11,6 +11,11 @@ def get_redis_cache(code, online_only=False):
     if cached_players is not None:
         return cached_players
     
+    # Import Player model here to avoid importing Django models at module
+    # import time (which can trigger settings access before DJANGO_SETTINGS_MODULE
+    # is set). This keeps the module import safe during ASGI startup.
+    from Players.models import PlayerModel as Player
+
     if online_only:
         players = list(Player.objects.filter(room=code, online=True))
     else:
