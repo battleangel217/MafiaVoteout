@@ -106,6 +106,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     "username": self.username,
                     "message": message,
                 })
+                message_format = f"{self.username}: {message}"
+                asyncio.create_task(sync_to_async(store_message)(self.code, message_format))
+
 
                 if "@idara" in message.lower():
                     try:
@@ -121,7 +124,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     except Exception as e:
                         print(f"AI response error: {e}")
                         await self.send(text_data=json.dumps({
-                            "type": "chat_message",
+                            "type": "chat.message",
                             "username": "Idaraobong(AI Bot)",
                             "message": "Sorry, I encountered an error while processing your request.",
                         }))
@@ -181,11 +184,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event["message"]
         username = event["username"]
-        message_format = f"{username}: {message}"
         
-        # Fire and forget - don't block on message storage
-        asyncio.create_task(sync_to_async(store_message)(self.code, message_format))
-        
+        # Fire and forget - don't block on message storage        
         await self.send(text_data=json.dumps({
             "type": "chat_message",
             "username": username,
@@ -469,13 +469,63 @@ def update_player_and_rebuild_cache(username, code, online=False):
     
     # Update database
     Player.objects.filter(username=username, room=code).update(online=online)
-    
-    # Rebuild cache for online players
-    online_players = list(Player.objects.filter(room=code, online=True))
-    online_player_dicts = [p.as_dict() for p in online_players]
-    cache.set(f'room_players_{code}:online', online_player_dicts, timeout=60)
-    
-    # Rebuild cache for all players
-    all_players = list(Player.objects.filter(room=code))
-    all_player_dicts = [p.as_dict() for p in all_players]
-    cache.set(f'room_players_{code}', all_player_dicts, timeout=60)
+    # Try to update existing cache entries incrementally to avoid
+    # querying all players on every join/leave. This function runs
+    # inside a thread (database_sync_to_async) so sync cache ops are OK.
+
+    key_all = f'room_players_{code}'
+    key_online = f'room_players_{code}:online'
+
+    # Update cached "all players" list if present
+    all_players = cache.get(key_all)
+    if all_players is not None:
+        found = False
+        for p in all_players:
+            if p.get('username') == username:
+                p['online'] = online
+                found = True
+                break
+        if not found and online:
+            # If player wasn't cached yet (rare), add a minimal entry.
+            all_players.append({
+                "username": username,
+                "isAdmin": False,
+                "online": online,
+                "isMafia": False,
+                "vote": 0,
+            })
+        cache.set(key_all, all_players, timeout=120)
+
+    # Update cached "online players" list if present
+    online_players = cache.get(key_online)
+    if online_players is not None:
+        if online:
+            # add the player to online list if not present
+            if not any(p.get('username') == username for p in online_players):
+                # try to reuse full-player entry if available
+                player_entry = None
+                if all_players is not None:
+                    for p in all_players:
+                        if p.get('username') == username:
+                            player_entry = p
+                            break
+                if player_entry is None:
+                    player_entry = {
+                        "username": username,
+                        "isAdmin": False,
+                        "online": online,
+                        "isMafia": False,
+                        "vote": 0,
+                    }
+                online_players.append(player_entry)
+        else:
+            # remove the player from online list
+            online_players = [p for p in online_players if p.get('username') != username]
+
+        cache.set(key_online, online_players, timeout=120)
+
+    # If either cache was missing entirely, fall back to clearing caches so
+    # the next `get_redis_cache` will rebuild them from the DB.
+    if all_players is None and online_players is None:
+        cache.delete(key_all)
+        cache.delete(key_online)
