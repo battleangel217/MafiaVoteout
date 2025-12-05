@@ -134,17 +134,58 @@ def update_player_and_rebuild_cache(username, code, online=False):
     
     # Update database
     Player.objects.filter(username=username, room=code).update(online=online)
-    
-    # Rebuild cache for online players
-    online_players = list(Player.objects.filter(room=code, online=True))
-    online_player_dicts = [p.as_dict() for p in online_players]
+    # Try to update caches incrementally to avoid expensive full rebuilds
+    key_all = f'room_players_{code}'
+    key_online = f'room_players_{code}:online'
 
-    cache.set(f'room_players_{code}:online', online_player_dicts, timeout=60)
-    
-    # Rebuild cache for all players
-    all_players = list(Player.objects.filter(room=code))
-    all_player_dicts = [p.as_dict() for p in all_players]
-    cache.set(f'room_players_{code}', all_player_dicts, timeout=60)
+    # Update cached "all players" list if present
+    all_players = cache.get(key_all)
+    if all_players is not None:
+        found = False
+        for p in all_players:
+            if p.get('username') == username:
+                p['online'] = online
+                found = True
+                break
+        if not found and online:
+            all_players.append({
+                "username": username,
+                "isAdmin": False,
+                "online": online,
+                "isMafia": False,
+                "vote": 0,
+            })
+        cache.set(key_all, all_players, timeout=120)
+
+    # Update cached "online players" list if present
+    online_players = cache.get(key_online)
+    if online_players is not None:
+        if online:
+            if not any(p.get('username') == username for p in online_players):
+                player_entry = None
+                if all_players is not None:
+                    for p in all_players:
+                        if p.get('username') == username:
+                            player_entry = p
+                            break
+                if player_entry is None:
+                    player_entry = {
+                        "username": username,
+                        "isAdmin": False,
+                        "online": online,
+                        "isMafia": False,
+                        "vote": 0,
+                    }
+                online_players.append(player_entry)
+        else:
+            online_players = [p for p in online_players if p.get('username') != username]
+
+        cache.set(key_online, online_players, timeout=120)
+
+    # If no cache existed at all, clear keys so next read will rebuild from DB
+    if all_players is None and online_players is None:
+        cache.delete(key_all)
+        cache.delete(key_online)
 
 @database_sync_to_async
 def get_players(name, code):
