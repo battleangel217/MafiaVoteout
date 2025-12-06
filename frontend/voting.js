@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
+  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`);
   // const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
-  const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
   // console.log(ws.send(JSON.stringify({ action: 'join', username: userinfo.username})));
 
   ws.addEventListener('open', () => {
@@ -21,17 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderPlayers(list) {
     const container = document.getElementById('playersList');
-    container.innerHTML = '';
-
-    // Check if current user is mafia
+    // build HTML for players first
     const currentPlayer = list.find(p => p.username === userinfo.username);
     const isMafia = currentPlayer && currentPlayer.isMafia;
-
-    // loop to render each player
+    let html = '';
     list.forEach(item => {
       if (userinfo.username === item.username){
         const mafiaBadge = item.isMafia ? `<span class="player-role">Mafia</span>` : '';
-        container.innerHTML += `
+        html += `
           <div class="player-item" data-username="${item.username}">
             <div class="player-info">
               <span class="player-name">${item.username} (You)</span>
@@ -42,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }else{
         const buttonText = isMafia ? 'Kill' : 'Vote';
         const buttonEnabled = isMafia ? '' : 'disabled';
-        container.innerHTML += `
+        html += `
           <div class="player-item" data-username="${item.username}">
             <div class="player-info">
               <span class="player-name">${item.username}</span>
@@ -52,61 +49,69 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    if (self.hasKilled){
-      document.querySelectorAll(".vote-btn").forEach((button) => {
-        button.disabled = true;
-      })
-    }
+    const skeletonCards = container.querySelectorAll('.skeleton-card');
+    const insertAndWire = () => {
+      container.innerHTML = html;
+      // add fade-in to player items
+      container.querySelectorAll('.player-item').forEach(item => item.classList.add('fade-in'));
 
-
-    document.querySelectorAll(".vote-btn").forEach((button) => {
-    console.log('yoi');
-    button.addEventListener("click", function () {
-      if (!this.disabled) {
-        const buttonText = this.textContent;
-        const isKillAction = buttonText === "Kill";
-        
-        // Reset all buttons
-        document.querySelectorAll(".vote-btn").forEach((btn) => {
-          btn.classList.remove("voted");
-          if (isKillAction) {
-            btn.textContent = "Kill";
-          } else {
-            btn.textContent = "Vote";
-          }
-          btn.disabled = true;
+      if (self.hasKilled){
+        container.querySelectorAll(".vote-btn").forEach((button) => {
+          button.disabled = true;
         })
-
-        // Mark this button as voted/killed
-        this.classList.add("voted");
-        if (isKillAction) {
-          this.textContent = "Killed";
-          self.hasKilled = true;
-          localStorage.setItem('hasKilled', self.hasKilled);
-        } else {
-          this.textContent = "Voted";
-          self.isVoted = true;
-          localStorage.setItem('isVoted', self.isVoted);
-        }
-        this.disabled = true;
-        
-
-        // Add chat message
-        // const playerName = this.closest(".player-item").querySelector(".player-name").textContent;
-        const username = this.closest(".player-item").dataset.username;
-        localStorage.setItem('votee', username);
-        
-        // Send appropriate action based on button type
-        ws.send(JSON.stringify(
-          {
-            "action": isKillAction ? "kill" : "vote",
-            "votee": username
-          }
-        ));
       }
-    })
-    })
 
+      container.querySelectorAll(".vote-btn").forEach((button) => {
+        button.addEventListener("click", function () {
+          if (!this.disabled) {
+            const buttonText = this.textContent;
+            const isKillAction = buttonText === "Kill";
+
+            // Reset all buttons
+            container.querySelectorAll(".vote-btn").forEach((btn) => {
+              btn.classList.remove("voted");
+              if (isKillAction) {
+                btn.textContent = "Kill";
+              } else {
+                btn.textContent = "Vote";
+              }
+              btn.disabled = true;
+            })
+
+            // Mark this button as voted/killed
+            this.classList.add("voted");
+            if (isKillAction) {
+              this.textContent = "Killed";
+              self.hasKilled = true;
+              localStorage.setItem('hasKilled', self.hasKilled);
+            } else {
+              this.textContent = "Voted";
+              self.isVoted = true;
+              localStorage.setItem('isVoted', self.isVoted);
+            }
+            this.disabled = true;
+
+            // Send appropriate action based on button type
+            const username = this.closest(".player-item").dataset.username;
+            localStorage.setItem('votee', username);
+            ws.send(JSON.stringify({
+              "action": isKillAction ? "kill" : "vote",
+              "votee": username
+            }));
+          }
+        })
+      })
+    };
+
+    if (skeletonCards.length) {
+      skeletonCards.forEach(card => card.classList.add('fade-out'));
+      setTimeout(() => {
+        container.querySelectorAll('.loading-skeleton').forEach(item => item.remove());
+        insertAndWire();
+      }, 350);
+    } else {
+      insertAndWire();
+    }
     return;
   }
 

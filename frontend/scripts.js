@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try{
-      const response = await fetch('https://mafiavoteout-backend.onrender.com/api/v1/room/',
+      const response = await fetch('http://127.0.0.1:8000/api/v1/room/',
         {
           method: "POST",
           headers: {'Content-Type':'application/json'},
@@ -47,10 +47,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("roomCodeDisplay").style.display = "block";
         document.getElementById("generatedRoomCode").innerText = res.code;
+        localStorage.setItem('userinfo', JSON.stringify(res));
 
         setTimeout(() => {
           console.log("Fuck you");    
-          localStorage.setItem('userinfo', JSON.stringify(res));
           window.location.href='lobby.html';
         }, 20000);
         
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try{
-      const response = await fetch('https://mafiavoteout-backend.onrender.com/api/v1/player/',
+      const response = await fetch('http://127.0.0.1:8000/api/v1/player/',
         {
           method: "POST",
           headers: {'Content-Type':'application/json'},
