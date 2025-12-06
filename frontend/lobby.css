@@ -449,3 +449,46 @@ body {
     font-size: 0.95rem;
   }
 }
+
+/* Loading skeleton styles (copied from rooms-list + fade-out) */
+.loading-skeleton {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  height: 64px;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background: rgba(255, 255, 255, 0.08); }
+  50% { background: rgba(255, 255, 255, 0.12); }
+  100% { background: rgba(255, 255, 255, 0.08); }
+}
+
+/* Fade-out used when removing skeletons for a smoother UX */
+.skeleton-card.fade-out {
+  animation: fadeOut 0.35s forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* Fade-in for newly rendered player items */
+.player-item.fade-in {
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try{
     const loadingSkeleton = roomsGrid.querySelectorAll(".loading-skeleton");
-    const response = await fetch('https://mafiavoteout-backend.onrender.com/api/v1/room/all',
+    const response = await fetch('http://127.0.0.1:8000/api/v1/room/all',
       {
         method: "GET",
         headers: {"Content-Type": "application/json"}
@@ -19,13 +19,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const res = await response.json();
-    loadingSkeleton.forEach((item) => {
-      item.remove();
-    })
     const rooms = document.querySelector('.rooms-grid')
 
+    // build HTML first
+    let html = '';
     res.forEach((item) => {
-      rooms.innerHTML += `
+      html += `
         <div class="room-card">
             <div class="room-header">
                 <h3>Room: ${item.code}</h3>
@@ -40,12 +39,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>`;
     });
 
-    document.querySelectorAll(".btn-join-room").forEach((btn) => {
-      btn.addEventListener("click", function() {
-        const code = this.getAttribute('data-code');
-        window.location.href = `index.html?code=${code}`;
+    // animate skeletons out, then insert real content and wire up handlers
+    const skeletonCards = roomsGrid.querySelectorAll('.skeleton-card');
+    if (skeletonCards.length) {
+      skeletonCards.forEach(card => card.classList.add('fade-out'));
+      setTimeout(() => {
+        roomsGrid.querySelectorAll('.loading-skeleton').forEach(item => item.remove());
+        rooms.innerHTML = html;
+        // add fade-in to cards for smooth entrance
+        rooms.querySelectorAll('.room-card').forEach(card => card.classList.add('fade-in'));
+        rooms.querySelectorAll(".btn-join-room").forEach((btn) => {
+          btn.addEventListener("click", function() {
+            const code = this.getAttribute('data-code');
+            window.location.href = `index.html?code=${code}`;
+          })
+        })
+      }, 350);
+    } else {
+      rooms.innerHTML = html;
+      rooms.querySelectorAll('.room-card').forEach(card => card.classList.add('fade-in'));
+      rooms.querySelectorAll(".btn-join-room").forEach((btn) => {
+        btn.addEventListener("click", function() {
+          const code = this.getAttribute('data-code');
+          window.location.href = `index.html?code=${code}`;
+        })
       })
-    })
+    }
 
 
 

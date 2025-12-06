@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
   // const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/lobby/${code}/`);
-  const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/lobby/${code}/`);
+  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/lobby/${code}/`);
 
   // Sends join message
   ws.addEventListener('open', () => {
@@ -15,19 +15,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   //render players from db
   function renderPlayers(list) {
     const container = document.getElementById('playersList');
-    container.innerHTML = '';
+    // build HTML for players first
     document.querySelector('.player-count').innerText = `Players: ${list.length}/15`;
     self.nplayers = list.length;
+    let html = '';
     list.forEach(item => {
-      let status = null;
-      if (item.online){
-        status = "Online"
-      }else {
-        status = "Offline"
-      }
+      let status = item.online ? 'Online' : 'Offline';
       if (userinfo.username === item.username){
         const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
-        container.innerHTML += `
+        html += `
           <div class="player-item" data-username="${item.username}">
             <div class="player-info">
               <span class="player-name">${item.username} (You)</span>
@@ -35,9 +31,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
             <div class="player-status ${status.toLocaleLowerCase()}">${status}</div>
           </div>`;
-      }else{
+      } else {
         const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
-        container.innerHTML += `
+        html += `
           <div class="player-item" data-username="${item.username}">
             <div class="player-info">
               <span class="player-name">${item.username}</span>
@@ -48,6 +44,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
+    // gracefully remove skeletons, then insert the HTML and animate in
+    const skeletonCards = container.querySelectorAll('.skeleton-card');
+    const doInsert = () => {
+      container.innerHTML = html;
+      container.querySelectorAll('.player-item').forEach(item => item.classList.add('fade-in'));
+      return;
+    };
+
+    if (skeletonCards.length) {
+      skeletonCards.forEach(card => card.classList.add('fade-out'));
+      setTimeout(() => {
+        container.querySelectorAll('.loading-skeleton').forEach(item => item.remove());
+        doInsert();
+      }, 350);
+    } else {
+      doInsert();
+    }
     return;
   }
 
