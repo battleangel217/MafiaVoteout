@@ -10,8 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
-  const ws = new WebSocket(`ws://127.0.0.1:8000/ws/voting/${code}/`);
-  // const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
+  const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+  // connect to production backend; uses wss when page is https
+  const ws = new WebSocket(`${wsProto}://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
+  // alternative: use a local dev server by changing the URL to ws://127.0.0.1:8000
   // console.log(ws.send(JSON.stringify({ action: 'join', username: userinfo.username})));
 
   ws.addEventListener('open', () => {

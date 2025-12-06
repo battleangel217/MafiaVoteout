@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try{
-      const response = await fetch('http://127.0.0.1:8000/api/v1/room/',
+      const response = await fetch(`${location.protocol}//mafiavoteout-backend.onrender.com/api/v1/room/`,
         {
           method: "POST",
           headers: {'Content-Type':'application/json'},
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try{
-      const response = await fetch('http://127.0.0.1:8000/api/v1/player/',
+      const response = await fetch(`${location.protocol}//mafiavoteout-backend.onrender.com/api/v1/player/`,
         {
           method: "POST",
           headers: {'Content-Type':'application/json'},
