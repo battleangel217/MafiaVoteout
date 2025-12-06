@@ -17,4 +17,4 @@ class RoomModel(models.Model):
         return self.username
 
     def get_messages(self):
-        return list(self.room.values_list("message", flat=True))
+        return list(self.room.values_list("message", flat=True).order_by("id"))

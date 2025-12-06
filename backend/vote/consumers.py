@@ -84,12 +84,12 @@ class VotingConsumer(AsyncWebsocketConsumer):
                     return
 
                 
-                # send full list
-                players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
+                # send full list — use a DB-backed async helper that returns plain dicts
+                players = await get_online_players(self.code)
                 print(players)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "player.list",
-                    "players": [p.as_dict() for p in players]
+                    "players": players
                 })
 
                 await self.channel_layer.group_send(self.chat_group_name, {
@@ -215,15 +215,16 @@ class VotingConsumer(AsyncWebsocketConsumer):
             who do you think is the mafia (check for people acting suspicious)? 
             You must give me a person's name and a reason in the format: 
             'I think the mafia is [person's name], because [your reason]'
-            Your answer must be very short and brief and precised
+            Your answer must be very short and brief and precised.
+            You are '@idara' so players will call on you for answers.
             """
             response = chat.send_message(prompt)
             html = markdown.markdown(response.text)
-            print(response.text, html)
             ai_res = BeautifulSoup(html, "html.parser")
-            print(ai_res)
+            # Convert parsed HTML to plain text so it can be JSON serialized
+            text_res = ai_res.get_text(separator=" ", strip=True)
             
-            return ai_res
+            return text_res
         except Exception as e:
             print(f"Error in _get_ai_response: {e}")
             return f"Sorry, I encountered an error: {str(e)}"
@@ -281,11 +282,11 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def timer_finished(self, event):
         """Handle timer completion"""
         print("helloooo word")
-        from Players.models import PlayerModel as Player
-        players = await sync_to_async(list)(Player.objects.filter(room=self.code, online=True))
+        # Use the async DB helper to fetch only needed fields as plain dicts
+        players = await get_online_players(self.code)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "player.list",
-            "players": [p.as_dict() for p in players]
+            "players": players
         })
         await delete_user(event["username"])
 
@@ -346,7 +347,6 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
 
         except asyncio.CancelledError:
-            print("Task endeddd")
             # Clean up on cancellation: notify room that timer was stopped if desired
             # (optional) we can send a final message; for now we quietly exit.
             return
@@ -436,4 +436,27 @@ def store_message(code, message):
     from vote.models import MessageModel as Message
     Message.objects.create(room_id=code, message=message)
     return
+
+
+@database_sync_to_async
+def get_online_players(code):
+    """Return a list of player dicts for online players in the room.
+
+    This avoids passing model instances across threads/event loop and only
+    selects the fields required by the frontend.
+    """
+    from Players.models import PlayerModel as Player
+    qs = Player.objects.filter(room=code, online=True).values(
+        'username', 'is_admin', 'online', 'is_mafia', 'vote'
+    )
+    result = []
+    for p in qs:
+        result.append({
+            "username": p['username'],
+            "isAdmin": p['is_admin'],
+            "online": p['online'],
+            "isMafia": p['is_mafia'],
+            "vote": p['vote'],
+        })
+    return result
 

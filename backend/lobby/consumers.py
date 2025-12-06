@@ -46,11 +46,11 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     })
                     return
                 
-                # send full list
-                players = await sync_to_async(list)(Player.objects.filter(room=self.code))
+                # send full list — fetch only needed fields as plain dicts
+                players = await get_room_players(self.code)
                 await self.channel_layer.group_send(self.lobby_group_name, {
                     "type": "player.list",
-                    "players": [p.as_dict() for p in players]
+                    "players": players
                 })
 
                 await self.channel_layer.group_send(self.chat_group_name, {
@@ -124,4 +124,23 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "not_found"
         }))
+
+
+@database_sync_to_async
+def get_room_players(code):
+    """Return list of player dicts for a room."""
+    from Players.models import PlayerModel as Player
+    qs = Player.objects.filter(room=code).values(
+        'username', 'is_admin', 'online', 'is_mafia', 'vote'
+    )
+    players = []
+    for p in qs:
+        players.append({
+            "username": p['username'],
+            "isAdmin": p['is_admin'],
+            "online": p['online'],
+            "isMafia": p['is_mafia'],
+            "vote": p['vote'],
+        })
+    return players
 # ...existing code...
