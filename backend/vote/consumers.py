@@ -10,7 +10,6 @@ from google import generativeai as genai
 import os
 import markdown
 from bs4 import BeautifulSoup
-from redis_storage.redis_cache import get_redis_cache, clear_players_cache
 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -41,7 +40,6 @@ class VotingConsumer(AsyncWebsocketConsumer):
         from Players.models import PlayerModel as Player
         self.username = getattr(self, "username", None)
         if self.username:
-            await update_player_and_rebuild_cache(self.username, self.code, online=False)
             await self.channel_layer.group_send(self.room_group_name, {
                 "type": "player.left",
                 "player": {"username": self.username}
