@@ -10,7 +10,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
-  const ws = new WebSocket(`wss://mafiavoteout-backend.onrender.com/ws/voting/${code}/`);
+  const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+  // connect to production backend; uses wss when page is https
+  const ws = new WebSocket(`${wsProto}://mafiavoteout-backend1.onrender.com/ws/voting/${code}/`);
   // console.log(ws.send(JSON.stringify({ action: 'join', username: userinfo.username})));
 
   ws.addEventListener('open', () => {

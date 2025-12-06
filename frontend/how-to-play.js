@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try{
-      const response = await fetch('https://mafiavoteout-backend.onrender.com/api/v1/aiagent/',
+      const response = await fetch('https://mafiavoteout-backend1.onrender.com/api/v1/aiagent/',
         {
           method: "POST",
           headers: {'Content-Type': 'application/json'},

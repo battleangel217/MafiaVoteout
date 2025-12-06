@@ -33,7 +33,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'mafiavoteout-backend.onrender.com',
-    'https://mafiavoteout-backend1.onrender.com',
+    'mafiavoteout-backend1.onrender.com',
     '127.0.0.1',
     'localhost',
     'mafiavoteout.onrender.com'
