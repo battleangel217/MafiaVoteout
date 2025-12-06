@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const res = await response.json();
-
+        document.getElementById("createlobby").disabled = true;
         document.getElementById("roomCodeDisplay").style.display = "block";
         document.getElementById("generatedRoomCode").innerText = res.code;
         localStorage.setItem('userinfo', JSON.stringify(res));
