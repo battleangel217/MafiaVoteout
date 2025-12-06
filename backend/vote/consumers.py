@@ -86,8 +86,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 await update_player_and_rebuild_cache(self.username, self.code, online=True)
 
                 
-                # send full list
-                players = await get_redis_cache(self.code, online_only=True)
+                # send full list — use a DB-backed async helper that returns plain dicts
+                players = await get_online_players(self.code)
                 print(players)
                 await self.channel_layer.group_send(self.room_group_name, {
                     "type": "player.list",
@@ -221,15 +221,16 @@ class VotingConsumer(AsyncWebsocketConsumer):
             who do you think is the mafia (check for people acting suspicious)? 
             You must give me a person's name and a reason in the format: 
             'I think the mafia is [person's name], because [your reason]'
-            Your answer must be very short and brief and precised
+            Your answer must be very short and brief and precised.
+            You are '@idara' so players will call on you for answers.
             """
             response = chat.send_message(prompt)
             html = markdown.markdown(response.text)
-            print(response.text, html)
             ai_res = BeautifulSoup(html, "html.parser")
-            print(ai_res)
+            # Convert parsed HTML to plain text so it can be JSON serialized
+            text_res = ai_res.get_text(separator=" ", strip=True)
             
-            return ai_res
+            return text_res
         except Exception as e:
             print(f"Error in _get_ai_response: {e}")
             return f"Sorry, I encountered an error: {str(e)}"
@@ -287,7 +288,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def timer_finished(self, event):
         """Handle timer completion"""
         print("helloooo word")
-        players = await get_redis_cache(self.code, online_only=True)
+        # Use the async DB helper to fetch only needed fields as plain dicts
+        players = await get_online_players(self.code)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "player.list",
             "players": players
@@ -351,7 +353,6 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
 
         except asyncio.CancelledError:
-            print("Task endeddd")
             # Clean up on cancellation: notify room that timer was stopped if desired
             # (optional) we can send a final message; for now we quietly exit.
             return
@@ -468,68 +469,24 @@ def store_message(code, message):
 
 
 @database_sync_to_async
-def update_player_and_rebuild_cache(username, code, online=False):
+def get_online_players(code):
+    """Return a list of player dicts for online players in the room.
+
+    This avoids passing model instances across threads/event loop and only
+    selects the fields required by the frontend.
+    """
     from Players.models import PlayerModel as Player
-    
-    # Update database
-    Player.objects.filter(username=username, room=code).update(online=online)
-    # Try to update existing cache entries incrementally to avoid
-    # querying all players on every join/leave. This function runs
-    # inside a thread (database_sync_to_async) so sync cache ops are OK.
+    qs = Player.objects.filter(room=code, online=True).values(
+        'username', 'is_admin', 'online', 'is_mafia', 'vote'
+    )
+    result = []
+    for p in qs:
+        result.append({
+            "username": p['username'],
+            "isAdmin": p['is_admin'],
+            "online": p['online'],
+            "isMafia": p['is_mafia'],
+            "vote": p['vote'],
+        })
+    return result
 
-    key_all = f'room_players_{code}'
-    key_online = f'room_players_{code}:online'
-
-    # Update cached "all players" list if present
-    all_players = cache.get(key_all)
-    if all_players is not None:
-        found = False
-        for p in all_players:
-            if p.get('username') == username:
-                p['online'] = online
-                found = True
-                break
-        if not found and online:
-            # If player wasn't cached yet (rare), add a minimal entry.
-            all_players.append({
-                "username": username,
-                "isAdmin": False,
-                "online": online,
-                "isMafia": False,
-                "vote": 0,
-            })
-        cache.set(key_all, all_players, timeout=120)
-
-    # Update cached "online players" list if present
-    online_players = cache.get(key_online)
-    if online_players is not None:
-        if online:
-            # add the player to online list if not present
-            if not any(p.get('username') == username for p in online_players):
-                # try to reuse full-player entry if available
-                player_entry = None
-                if all_players is not None:
-                    for p in all_players:
-                        if p.get('username') == username:
-                            player_entry = p
-                            break
-                if player_entry is None:
-                    player_entry = {
-                        "username": username,
-                        "isAdmin": False,
-                        "online": online,
-                        "isMafia": False,
-                        "vote": 0,
-                    }
-                online_players.append(player_entry)
-        else:
-            # remove the player from online list
-            online_players = [p for p in online_players if p.get('username') != username]
-
-        cache.set(key_online, online_players, timeout=120)
-
-    # If either cache was missing entirely, fall back to clearing caches so
-    # the next `get_redis_cache` will rebuild them from the DB.
-    if all_players is None and online_players is None:
-        cache.delete(key_all)
-        cache.delete(key_online)

@@ -48,8 +48,8 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     })
                     return
                 
-                # send full list
-                players = await get_redis_cache(self.code)
+                # send full list — fetch only needed fields as plain dicts
+                players = await get_room_players(self.code)
                 await self.channel_layer.group_send(self.lobby_group_name, {
                     "type": "player.list",
                     "players": players
@@ -129,65 +129,20 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
 
 @database_sync_to_async
-def update_player_and_rebuild_cache(username, code, online=False):
+def get_room_players(code):
+    """Return list of player dicts for a room."""
     from Players.models import PlayerModel as Player
-    
-    # Update database
-    Player.objects.filter(username=username, room=code).update(online=online)
-    # Try to update caches incrementally to avoid expensive full rebuilds
-    key_all = f'room_players_{code}'
-    key_online = f'room_players_{code}:online'
-
-    # Update cached "all players" list if present
-    all_players = cache.get(key_all)
-    if all_players is not None:
-        found = False
-        for p in all_players:
-            if p.get('username') == username:
-                p['online'] = online
-                found = True
-                break
-        if not found and online:
-            all_players.append({
-                "username": username,
-                "isAdmin": False,
-                "online": online,
-                "isMafia": False,
-                "vote": 0,
-            })
-        cache.set(key_all, all_players, timeout=120)
-
-    # Update cached "online players" list if present
-    online_players = cache.get(key_online)
-    if online_players is not None:
-        if online:
-            if not any(p.get('username') == username for p in online_players):
-                player_entry = None
-                if all_players is not None:
-                    for p in all_players:
-                        if p.get('username') == username:
-                            player_entry = p
-                            break
-                if player_entry is None:
-                    player_entry = {
-                        "username": username,
-                        "isAdmin": False,
-                        "online": online,
-                        "isMafia": False,
-                        "vote": 0,
-                    }
-                online_players.append(player_entry)
-        else:
-            online_players = [p for p in online_players if p.get('username') != username]
-
-        cache.set(key_online, online_players, timeout=120)
-
-    # If no cache existed at all, clear keys so next read will rebuild from DB
-    if all_players is None and online_players is None:
-        cache.delete(key_all)
-        cache.delete(key_online)
-
-@database_sync_to_async
-def get_players(name, code):
-    from Players.models import PlayerModel as Player
-    return Player.objects.filter(username=name, room=code).values().first()
+    qs = Player.objects.filter(room=code).values(
+        'username', 'is_admin', 'online', 'is_mafia', 'vote'
+    )
+    players = []
+    for p in qs:
+        players.append({
+            "username": p['username'],
+            "isAdmin": p['is_admin'],
+            "online": p['online'],
+            "isMafia": p['is_mafia'],
+            "vote": p['vote'],
+        })
+    return players
+# ...existing code...

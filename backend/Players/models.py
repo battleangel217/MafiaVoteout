@@ -19,3 +19,9 @@ class PlayerModel(models.Model):
             "isMafia": self.is_mafia,
             "vote": self.vote
         }
+
+    class Meta:
+        # composite index to speed up queries that filter by room and online status
+        indexes = [
+            models.Index(fields=["room", "online"]),
+        ]
