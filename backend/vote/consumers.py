@@ -225,8 +225,9 @@ class VotingConsumer(AsyncWebsocketConsumer):
             """
             response = chat.send_message(prompt)
             html = markdown.markdown(response.text)
-
+            print(response.text, html)
             ai_res = BeautifulSoup(html, "html.parser")
+            print(ai_res)
             
             return ai_res
         except Exception as e:
