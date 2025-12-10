@@ -20,6 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ws.send(JSON.stringify({}))
   });
 
+  setTimeout(() => {
+    ws.send(JSON.stringify({
+      "action":"start_timer"
+    }));
+  }, 60000);
+
   function renderPlayers(list) {
     const container = document.getElementById('playersList');
     // build HTML for players first
@@ -291,7 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ws.send(JSON.stringify({
           "action":"start_timer"
         }));
-      }, 70000);
+      }, 60000);
     }
 
     if (data.type === 'killed'){
@@ -411,13 +417,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }))
   })
 
-  if (userinfo.isAdmin){
-    document.getElementById("eliminationResult").style.display = 'block';
-    document.getElementById("nextRoundBtn").style.display = "block";
-  }else{
-    document.getElementById("eliminationResult").style.display = 'none';
-    document.getElementById("nextRoundBtn").style.display = "none";
-  }
+  // if (userinfo.isAdmin){
+  //   document.getElementById("eliminationResult").style.display = 'block';
+  //   document.getElementById("nextRoundBtn").style.display = "block";
+  // }else{
+  //   document.getElementById("eliminationResult").style.display = 'none';
+  //   document.getElementById("nextRoundBtn").style.display = "none";
+  // }
 
   // Helper function to add chat messages
   function addChatMessage(username, message) {

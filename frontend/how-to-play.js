@@ -6,23 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatInput = document.getElementById("chatInput")
   const chatMessages = document.getElementById("chatMessages")
 
-  // Responses for common questions
-  // const responses = {
-  //   role: "There are 4 roles: Mafia (hidden killers), Detective (investigator), Doctor (protector), and Villager (innocent). Each has different abilities!",
-  //   win: "Town wins if all mafia are eliminated. Mafia wins if they equal or outnumber the innocent players.",
-  //   strategy:
-  //     "Listen to discussions, observe voting patterns, and ask questions. Don't trust everyone! As mafia, create alibis.",
-  //   mafia: "Mafia members vote during the day and eliminate innocents at night. They know each other's identities.",
-  //   detective:
-  //     "Detectives can investigate one player per night to learn their role. Share info strategically during the day.",
-  //   doctor: "Doctors protect one player per night from being eliminated. You can protect yourself!",
-  //   day: "During the day, all players discuss and vote to eliminate someone they think is mafia.",
-  //   night: "At night, mafia kills, detective investigates, and doctor protects. Innocent players wait.",
-  //   vote: "The player with the most votes during the day is eliminated and their role is revealed.",
-  //   default:
-  //     "I can help! Ask about roles, winning conditions, strategy, or specific phases like day/night. What would you like to know?",
-  // }
-
   // Toggle chat modal
   chatBubble.addEventListener("click", () => {
     chatModal.classList.toggle("active")
@@ -42,6 +25,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (chatModal.classList.contains("active")) {
         chatModal.classList.remove("active")
         chatBubble.classList.remove("active")
+      }
+    }
+  })
+
+  // Close chat with Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" || e.key === "Esc") {
+      if (chatModal.classList.contains("active")) {
+        chatModal.classList.remove("active")
+        chatBubble.classList.remove("active")
+        // optionally remove focus from input
+        if (document.activeElement === chatInput) chatInput.blur()
       }
     }
   })
