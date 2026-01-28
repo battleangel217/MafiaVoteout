@@ -5,17 +5,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const emptyState = document.getElementById("emptyState")
 
 
-  try{
+  try {
     const loadingSkeleton = roomsGrid.querySelectorAll(".loading-skeleton");
-    const response = await fetch('https://mafiavoteout-backend1.onrender.com/api/v1/room/all',
+    const response = await fetch('https://mafiavoteout-backend2.onrender.com/api/v1/room/all',
       {
         method: "GET",
-        headers: {"Content-Type": "application/json"}
+        headers: { "Content-Type": "application/json" }
       }
     )
 
     if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const res = await response.json();
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // add fade-in to cards for smooth entrance
         rooms.querySelectorAll('.room-card').forEach(card => card.classList.add('fade-in'));
         rooms.querySelectorAll(".btn-join-room").forEach((btn) => {
-          btn.addEventListener("click", function() {
+          btn.addEventListener("click", function () {
             const code = this.getAttribute('data-code');
             window.location.href = `index.html?code=${code}`;
           })
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       rooms.innerHTML = html;
       rooms.querySelectorAll('.room-card').forEach(card => card.classList.add('fade-in'));
       rooms.querySelectorAll(".btn-join-room").forEach((btn) => {
-        btn.addEventListener("click", function() {
+        btn.addEventListener("click", function () {
           const code = this.getAttribute('data-code');
           window.location.href = `index.html?code=${code}`;
         })
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 
-  }catch(error){
+  } catch (error) {
     alert("can't connect to server");
     console.log("Error", error);
   }

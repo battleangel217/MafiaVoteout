@@ -73,27 +73,27 @@ document.addEventListener("DOMContentLoaded", () => {
       "message": message
     }
 
-    try{
-      const response = await fetch('https://mafiavoteout-backend1.onrender.com/api/v1/aiagent/',
+    try {
+      const response = await fetch('https://mafiavoteout-backend2.onrender.com/api/v1/aiagent/',
         {
           method: "POST",
-          headers: {'Content-Type': 'application/json'},
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
 
-        const res = await response.json();
-        const aiResponse = marked.parse(res.message);
-        console.log(aiResponse);
-        typingBubble.remove()
+      const res = await response.json();
+      const aiResponse = marked.parse(res.message);
+      console.log(aiResponse);
+      typingBubble.remove()
 
-        const botMessage = document.createElement("div")
-        botMessage.className = "chat-message bot-message"
-        botMessage.innerHTML = aiResponse
-        chatMessages.appendChild(botMessage)
-        chatMessages.scrollTop = chatMessages.scrollHeight
+      const botMessage = document.createElement("div")
+      botMessage.className = "chat-message bot-message"
+      botMessage.innerHTML = aiResponse
+      chatMessages.appendChild(botMessage)
+      chatMessages.scrollTop = chatMessages.scrollHeight
 
-        chatMessages.scrollTop = chatMessages.scrollHeight
-    }catch(error){
+      chatMessages.scrollTop = chatMessages.scrollHeight
+    } catch (error) {
       typingBubble.remove()
 
       const botMessage = document.createElement("div")
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // Add bot response after a delay
-   
+
   }
 
   chatSend.addEventListener("click", sendMessage)

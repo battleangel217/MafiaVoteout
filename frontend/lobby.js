@@ -5,11 +5,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
   // connect to production backend; uses wss when page is https
-  const ws = new WebSocket(`${wsProto}://mafiavoteout-backend1.onrender.com/ws/lobby/${code}/`);
+  const ws = new WebSocket(`${wsProto}://mafiavoteout-backend2.onrender.com/ws/lobby/${code}/`);
 
   // Sends join message
   ws.addEventListener('open', () => {
-    ws.send(JSON.stringify({ action: 'join', username: userinfo.username}));
+    ws.send(JSON.stringify({ action: 'join', username: userinfo.username }));
   });
 
   //render players from db
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let html = '';
     list.forEach(item => {
       let status = item.online ? 'Online' : 'Offline';
-      if (userinfo.username === item.username){
+      if (userinfo.username === item.username) {
         const adminBadge = item.isAdmin ? `<span class="player-badge admin-badge">Admin</span>` : '';
         html += `
           <div class="player-item" data-username="${item.username}">
@@ -75,12 +75,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         el.style.color = 'red'
       }
       const count = document.querySelectorAll('#playersList .player-item').length;
-      document.querySelector('.player-count').innerText = `Players: ${count-1}/15`;
+      document.querySelector('.player-count').innerText = `Players: ${count - 1}/15`;
 
       let join_username = null;
-      if (data.player.username === userinfo.username){
+      if (data.player.username === userinfo.username) {
         join_username = "You";
-      }else{
+      } else {
         join_username = data.player.username;
       }
 
@@ -90,16 +90,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       messageElement.innerText = `${join_username} left the room`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
-      self.nplayers --;
-      
+      self.nplayers--;
+
     }
 
 
     if (data.type === 'player_join') {
       let join_username = null;
-      if (data.username === userinfo.username){
+      if (data.username === userinfo.username) {
         join_username = "You";
-      }else{
+      } else {
         join_username = data.username;
       }
 
@@ -112,22 +112,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (data.type === 'chat_message'){
+    if (data.type === 'chat_message') {
       let uname = null;
-      if (data.username === userinfo.username){
+      if (data.username === userinfo.username) {
         uname = "You";
-      }else{
+      } else {
         uname = data.username;
       }
       addChatMessage(uname, data.message);
-        
+
     }
 
-    if (data.type === 'start_game'){
+    if (data.type === 'start_game') {
       window.location.href = "voting.html"
     }
 
-    if (data.type === 'not_found'){
+    if (data.type === 'not_found') {
       alert("Not a player. Redirecting to home page.");
       window.location.href = "index.html";
     }
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   ws.addEventListener('error', (e) => console.error('Socket error', e));
 
   // ...keep the rest of your admin/chat UI handlers...
-// ...existing code...
+  // ...existing code...
   // Check if user is admin based on URL parameter
   const isAdmin = userinfo.isAdmin;
 
@@ -149,16 +149,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("adminControls").style.display = "none"
     document.getElementById("playerWaiting").style.display = "block"
   }
-  
+
   // Start game button (admin only)
   document.getElementById("startGameBtn").addEventListener("click", () => {
-    if (nplayers > 3){
+    if (nplayers > 3) {
       ws.send(JSON.stringify(
         {
           "action": "start_game"
         }
       ));
-    }else{
+    } else {
       alert('Players must be up to 4')
     }
   })
@@ -192,10 +192,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   function addChatMessage(username, message) {
     const chatMessages = document.getElementById("chatMessages")
     const messageElement = document.createElement("div")
-    if (username === 'You'){
+    if (username === 'You') {
       messageElement.className = "you-chat-message"
       messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
-    }else{
+    } else {
       messageElement.className = "chat-message"
       messageElement.innerHTML = `<span class="username">${username}:</span> ${message}`
     }
