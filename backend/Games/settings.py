@@ -36,7 +36,8 @@ ALLOWED_HOSTS = [
     'mafiavoteout-backend1.onrender.com',
     '127.0.0.1',
     'localhost',
-    'mafiavoteout.onrender.com'
+    'mafiavoteout.onrender.com',
+    'mafiavoteout-backend2.onrender.com'
 ]
 
 
@@ -47,7 +48,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'https://mafiavoteout-backend.onrender.com',
     'https://mafiavoteout-backend1.onrender.com',
-    'https://mafiavoteout.onrender.com'
+    'https://mafiavoteout.onrender.com',
+    'https://mafiavoteout-backend2.onrender.com'
 ]
 
 
