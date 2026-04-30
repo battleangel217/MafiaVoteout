@@ -1,75 +1,146 @@
-# MafiaVoteout
+# 🎭 Mafia Voteout
 
-MafiaVoteout is a multiplayer social deduction game where players join a room, chat, and vote to eliminate suspected mafia members.
+> A real-time multiplayer social deduction game — built with WebSockets, Redis, Django, and an AI agent that helps players hunt the mafia.
+
+**[▶ Play Live](https://mafiavoteout.onrender.com)** | **[How to Play](https://mafiavoteout.onrender.com/how-to-play.html)**
+
+---
+
+## What is this?
+
+Mafia Voteout is an online multiplayer version of the classic Mafia/Werewolf party game. Players join rooms, get assigned secret roles (Mafia or Villager), and must vote out the mafia before the mafia eliminates the town.
+
+The twist: an AI agent named **@idara** lives inside the game chat. Players can summon it during voting to get AI-powered suspicion analysis — though it's not always right, which keeps things interesting.
+
+---
+
+## Features
+
+- 🔴 **Real-time multiplayer** — WebSocket-powered gameplay with live phase transitions, voting, and elimination
+- 🤖 **In-game AI agent** — type `@idara` in the voting arena to get AI-driven mafia suspicion analysis (Gemini 2.0 Flash)
+- 💬 **AI Guide chatbot** — floating assistant on the How to Play page answers rules questions
+- 🏠 **Public & Private rooms** — public rooms are browsable; private rooms need a code
+- 👑 **Admin controls** — room creator manages game start and lobby
+- ⏱️ **Timed phases** — Day phase (2 min voting), Night phase (1 min mafia kill)
+- 🎭 **Role assignment** — mafia badge and kill button appear only for mafia players
+- 📋 **Available rooms list** — browse and join open public lobbies
+
+---
 
 ## Tech Stack
 
-- **Backend:** Django, Django REST Framework, Django Channels, Redis
-- **Frontend:** Vanilla HTML/CSS/JavaScript
-- **AI helper:** Google Gemini API
+| Layer | Technology |
+|---|---|
+| Backend | Django, Django Channels |
+| Real-time | WebSockets (Django Channels) |
+| Cache / Pub-Sub | Redis |
+| Database | PostgreSQL |
+| AI Integration | Google Gemini 2.0 Flash |
+| Frontend | HTML, CSS, Vanilla JavaScript |
+| Hosting | Render |
 
-## Project Structure
+---
+
+## Architecture Overview
 
 ```
-MafiaVoteout/
-├── backend/   # Django API + WebSocket server
-└── frontend/  # Static client pages
+Client (Browser)
+     │
+     │  WebSocket connection
+     ▼
+Django Channels (ASGI)
+     │
+     ├── Redis (channel layer / pub-sub for room state)
+     │
+     ├── PostgreSQL (persistent game data)
+     │
+     └── Gemini API (AI agent responses on @idara mention)
 ```
 
-## Core Features
+Game state (phases, votes, players, roles) is managed server-side and broadcast to all room members in real time. Role assignment happens server-side on game start and is never exposed to the wrong client.
 
-- Create and join game rooms
-- Public room listing
-- Real-time lobby chat and player presence
-- Real-time voting and elimination flow
-- AI game helper endpoint and in-game AI mention support
+---
 
-## Backend Setup (Local)
+## Game Flow
 
-1. Go to backend:
-   - `cd /home/runner/work/MafiaVoteout/MafiaVoteout/backend`
-2. Create and activate a virtual environment.
-3. Install dependencies:
-   - `pip install -r requirements.txt`
-4. Set environment variables:
-   - `SECRET_KEY`
-   - `DATABASE_URL`
-   - `REDIS_URL`
-   - `GEMINI_API_KEY`
-5. Run migrations:
-   - `python manage.py migrate`
-6. Start the ASGI server:
-   - `daphne Games.asgi:application`
+```
+Players join lobby
+       │
+  Admin starts game
+       │
+  Roles assigned secretly
+       │
+  ┌────▼─────────────────┐
+  │     DAY PHASE (2min) │ ← All players discuss & vote
+  │  @idara AI available │
+  └────────┬─────────────┘
+           │ Player with most votes eliminated
+  ┌────────▼─────────────┐
+  │   NIGHT PHASE (1min) │ ← Mafia picks a target
+  └────────┬─────────────┘
+           │ Innocent eliminated
+           │
+  Repeat until:
+  - All mafia eliminated → Town wins 🏆
+  - Mafia = Innocents → Mafia wins 🔪
+```
 
-## Frontend Setup (Local)
+---
 
-1. Go to frontend:
-   - `cd /home/runner/work/MafiaVoteout/MafiaVoteout/frontend`
-2. Serve the files with any static server (example):
-   - `python -m http.server 5502`
-3. Open `http://127.0.0.1:5502/index.html`.
+## Local Development
 
-> Note: frontend requests currently target the deployed backend domain in JS files. Update those URLs if you want full local backend usage.
+```bash
+# Clone the repo
+git clone https://github.com/battleangel217/MafiaVoteout.git
+cd MafiaVoteout
 
-## API Routes
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-Base path: `/api/v1/`
+# Install dependencies
+pip install -r requirements.txt
 
-- `room/` - create/get/start/delete rooms
-- `room/all` - list public rooms
-- `player/` - create/list players
-- `health/` - health check
-- `aiagent/` - AI guide response endpoint
+# Set environment variables
+cp .env.example .env
+# Fill in: SECRET_KEY, DATABASE_URL, REDIS_URL, GEMINI_API_KEY
 
-## WebSocket Routes
+# Run migrations
+python manage.py migrate
 
-- `/ws/lobby/<code>/` - lobby updates/chat
-- `/ws/voting/<code>/` - voting round updates/chat
+# Start server
+python manage.py runserver
+```
 
-## Running Tests
+> Make sure Redis is running locally (`redis-server`) before starting.
 
-From backend:
+---
 
-- `python manage.py test`
+## Environment Variables
 
-If Django is not installed in your environment, install dependencies first with `pip install -r requirements.txt`.
+```env
+SECRET_KEY=your_django_secret_key
+DATABASE_URL=postgresql://...
+REDIS_URL=redis://localhost:6379
+GEMINI_API_KEY=your_gemini_api_key
+DEBUG=True
+```
+
+---
+
+## Origin Story
+
+This project started as a terminal-based Python game — players typed commands in the CLI to vote and eliminate. Over time it evolved into a full web application with real-time multiplayer, persistent game state, and AI integration. The core game logic remained the same; the infrastructure around it grew into something genuinely production-grade.
+
+---
+
+## Author
+
+**Idaraobong Joseph** — Full Stack Developer  
+[Portfolio](https://idaraobong.vercel.app) · [LinkedIn](https://linkedin.com/in/idaraobong-etim-998328295) · [Twitter/X](https://x.com/idaraobong217)
+
+---
+
+## License
+
+MIT
