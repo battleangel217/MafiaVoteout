@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try{
     const loadingSkeleton = roomsGrid.querySelectorAll(".loading-skeleton");
-    const response = await fetch(`${location.protocol}//mafiavoteout-backend1.onrender.com/api/v1/room/all`,
+    const response = await fetch(`${location.protocol}//mafiavoteout-backend2.onrender.com/api/v1/room/all`,
       {
         method: "GET",
         headers: {"Content-Type": "application/json"}
