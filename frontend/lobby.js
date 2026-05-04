@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
   // connect to production backend; uses wss when page is https
-  const ws = new WebSocket(`${wsProto}://mafiavoteout-backend.onrender.com/ws/lobby/${code}/`);
+  const ws = new WebSocket(`${wsProto}://mafiavoteout-backend1.onrender.com/ws/lobby/${code}/`);
 
   // Sends join message
   ws.addEventListener('open', () => {
