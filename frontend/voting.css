@@ -178,6 +178,36 @@ body {
   border-radius: 5px;
 }
 
+.room-info {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+.phase-display {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.phase-display.day-phase {
+  background: linear-gradient(45deg, #fca311, #ffb703);
+  color: #1a1a2e;
+}
+
+.phase-display.night-phase {
+  background: linear-gradient(45deg, #1a1a2e, #16213e);
+  color: #4ecdc4;
+  border: 1px solid #4ecdc4;
+}
+
 .vote-btn {
   background: linear-gradient(45deg, #ff6b6b, #ee5a52);
   color: white;

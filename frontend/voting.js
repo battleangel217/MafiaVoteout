@@ -8,6 +8,20 @@ document.addEventListener("DOMContentLoaded", () => {
   self.hasKilled = (self.hasKilled === "true")
   document.querySelector('.room-code').innerText = `Room: ${code}`;
 
+  const phase = localStorage.getItem('gamePhase') || 'day';
+  const phaseDisplay = document.getElementById('phaseDisplay');
+  if (phaseDisplay) {
+      if (phase === 'night') {
+          phaseDisplay.className = "phase-display night-phase";
+          phaseDisplay.innerHTML = "🌙 Night Phase";
+          document.querySelector('.header h1').innerText = "🔪 Killing Phase";
+      } else {
+          phaseDisplay.className = "phase-display day-phase";
+          phaseDisplay.innerHTML = "☀️ Day Phase";
+          document.querySelector('.header h1').innerText = "🎭 Voting Phase";
+      }
+  }
+
   // let timeLeft = 20;
   // const timerElement = document.getElementById("timer");
   const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -39,8 +53,19 @@ document.addEventListener("DOMContentLoaded", () => {
             <button class="vote-btn" disabled>Vote</button>
           </div>`;
       }else{
-        const buttonText = isMafia ? 'Kill' : 'Vote';
-        const buttonEnabled = isMafia ? '' : 'disabled';
+        const phase = localStorage.getItem('gamePhase') || 'day';
+        let buttonText = 'Vote';
+        let buttonEnabled = '';
+        
+        if (phase === 'night') {
+            buttonText = isMafia ? 'Kill' : 'Wait';
+            buttonEnabled = isMafia ? '' : 'disabled';
+        } else {
+            // Everyone can click Vote during the day
+            buttonText = 'Vote';
+            buttonEnabled = '';
+        }
+        
         html += `
           <div class="player-item" data-username="${item.username}">
             <div class="player-info">
@@ -226,8 +251,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'start_voting'){
       self.isVoted = false;
       self.votee = null;
-      localStorage.setItem('isVoted', self.isVoted)
-      localStorage.setItem('votee', self.votee)
+      self.hasKilled = false;
+      localStorage.setItem('isVoted', self.isVoted);
+      localStorage.setItem('votee', self.votee);
+      localStorage.setItem('hasKilled', self.hasKilled);
+      if (data.phase) {
+          localStorage.setItem('gamePhase', data.phase);
+      }
       location.reload();
       const chatMessages = document.getElementById("chatMessages");
       const messageElement = document.createElement("div");
@@ -282,17 +312,21 @@ document.addEventListener("DOMContentLoaded", () => {
         ws.send(JSON.stringify({"type": "game_over"}));
         setTimeout(() => {
           alert("Game Over");
-          window.location.href = "index.html";
+          setTimeout(() => { window.location.href = "index.html"; }, 3000);
         }, 10000);
           return;
         }
       
-      // Auto-start timer after 20 seconds
+      if (data.phase_transition) {
+          localStorage.setItem('gamePhase', data.phase_transition);
+      }
+      
+      // Auto-start timer after 10 seconds for smoothness, unless game over
       setTimeout(() => {
         ws.send(JSON.stringify({
           "action":"start_timer"
         }));
-      }, 70000);
+      }, 10000);
     }
 
     if (data.type === 'killed'){
@@ -313,6 +347,29 @@ document.addEventListener("DOMContentLoaded", () => {
       messageElement.innerText = `${join_username} was killed by the mafia`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      if (data.end){
+        const results = document.getElementById("resultMessage");
+        results.className = "result-message failure";
+        document.getElementById("eliminationResult").style.display = "block";
+        results.innerText = "Mafia eliminated enough players. Mafia Wins!";
+        ws.send(JSON.stringify({"type": "game_over"}));
+        setTimeout(() => {
+          alert("Game Over");
+          setTimeout(() => { window.location.href = "index.html"; }, 3000);
+        }, 3000);
+        return;
+      }
+
+      // Automatically transition to Day phase after mafia kills
+      localStorage.setItem('gamePhase', 'day');
+      
+      // Auto-start next timer
+      setTimeout(() => {
+        ws.send(JSON.stringify({
+          "action":"start_timer"
+        }));
+      }, 5000);
     }
 
     if (data.type === 'start_game'){
