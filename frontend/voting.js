@@ -210,14 +210,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.type === 'timer'){
       let timeLeft = data.time_left;
       timerElement.textContent = timeLeft;
-      if (!self.isVoted){
+      
+      const phase = localStorage.getItem('gamePhase') || 'day';
+      const myPlayerItem = document.querySelector(`.player-item[data-username="${userinfo.username}"]`);
+      const isMafia = myPlayerItem && myPlayerItem.querySelector('.player-role') !== null;
+
+      if (!self.isVoted && !self.hasKilled){
         document.querySelectorAll(".vote-btn").forEach((btn) => {
           btn.classList.remove("voted");
-          btn.textContent = "Vote";
-          btn.disabled = false;
+          if (phase === 'night') {
+            btn.textContent = isMafia ? 'Kill' : 'Wait';
+            btn.disabled = isMafia ? false : true;
+          } else {
+            btn.textContent = "Vote";
+            btn.disabled = false;
+          }
         })
       }else if (self.isVoted){
-        console.log("did ts work")
         document.querySelectorAll('.vote-btn').forEach((btn) => {
           btn.disabled = true;
         });
@@ -225,9 +234,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const playerDiv = document.querySelector(`.player-item[data-username="${self.votee}"]`);
         if (playerDiv) {
           const voteBtn = playerDiv.querySelector(".vote-btn");
-          if (voteBtn) voteBtn.classList.add("voted"); voteBtn.innerText = "Voted"
+          if (voteBtn) {
+            voteBtn.classList.add("voted"); 
+            voteBtn.innerText = "Voted";
+          }
         }
-      } 
+      } else if (self.hasKilled){
+        document.querySelectorAll('.vote-btn').forEach((btn) => {
+          btn.disabled = true;
+        });
+        
+        const playerDiv = document.querySelector(`.player-item[data-username="${self.votee}"]`);
+        if (playerDiv) {
+          const voteBtn = playerDiv.querySelector(".vote-btn");
+          if (voteBtn) {
+            voteBtn.classList.add("voted"); 
+            voteBtn.innerText = "Killed";
+          }
+        }
+      }
       // }else {
       //   const layout = localStorage.getItem('votelayout')
       //   document.querySelector('.players-list').innerHTML = layout;
