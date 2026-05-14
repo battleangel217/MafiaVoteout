@@ -20,6 +20,7 @@ class VotingConsumer(AsyncWebsocketConsumer):
     #   'owner' -> channel_name of the consumer that started it
     #   'duration' -> requested duration
     room_timers = {}
+    room_phases = {}
 
     async def connect(self):
         self.code = self.scope['url_route']['kwargs']['code']
@@ -132,9 +133,10 @@ class VotingConsumer(AsyncWebsocketConsumer):
             
                 
             elif action == "start_timer":
-                duration = data.get("duration", 120)  # default 70 seconds
+                phase = self.room_phases.get(self.code, "day")
+                duration = 120 if phase == "day" else 30
                 # spawn the timer as a background task so we don't block receive()
-                await self.start_voting_timer(duration)
+                await self.start_voting_timer(duration, phase)
                 
             elif action == "vote":
                 voter = self.username
@@ -147,12 +149,28 @@ class VotingConsumer(AsyncWebsocketConsumer):
                 })
 
             elif action == "kill":
-                killed = data.get("votee")
-                await delete_user(killed, self.code)
-                await self.channel_layer.group_send(self.room_group_name, {
-                    "type": "killed",
-                    "username": killed
-                })
+                phase = self.room_phases.get(self.code, "day")
+                if phase == "night":
+                    killed = data.get("votee")
+                    
+                    # Stop the night timer since mafia made his move early!
+                    timer_info = self.room_timers.get(self.code)
+                    if timer_info and timer_info.get("task"):
+                        timer_info["task"].cancel()
+                        
+                    await delete_user(killed, self.code)
+                    
+                    players = await get_online_players(self.code)
+                    check = await check_mafia(code=self.code)
+                    
+                    await self.channel_layer.group_send(self.room_group_name, {
+                        "type": "killed",
+                        "username": killed,
+                        "end": len(players) <= 2 or not check
+                    })
+                    
+                    # Switch phase back to day
+                    self.room_phases[self.code] = "day"
                 
             elif action == "game_over":
                 await delete_room(code=self.code)
@@ -256,10 +274,11 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def killed(self, event):
         await self.send(text_data=json.dumps({
             "type": "killed",
-            "killed": event["username"]
+            "killed": event["username"],
+            "end": event.get("end", False)
         }))
 
-    async def start_voting_timer(self, duration):
+    async def start_voting_timer(self, duration, phase="day"):
         """Start a synchronized voting timer for the room"""
         # Check if there's already an active timer for this room
         existing = self.room_timers.get(self.code)
@@ -275,7 +294,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
         
         # announce start (non-blocking)
         await self.channel_layer.group_send(self.room_group_name, {
-            "type": "start.voting"
+            "type": "start.voting",
+            "phase": phase
         })
 
         # create and store a background task that runs the countdown
@@ -285,37 +305,47 @@ class VotingConsumer(AsyncWebsocketConsumer):
 
     async def timer_finished(self, event):
         """Handle timer completion"""
-        print("helloooo word")
-        # Use the async DB helper to fetch only needed fields as plain dicts
+        phase = self.room_phases.get(self.code, "day")
+        eliminated_user = event.get("username")
+        
+        if phase == "day":
+            if eliminated_user and eliminated_user != "None":
+                await delete_user(eliminated_user, self.code)
+            self.room_phases[self.code] = "night"
+        else:
+            # Night timer elapsed and Mafia didn't pick anyone!
+            eliminated_user = "None"
+            self.room_phases[self.code] = "day"
+
         players = await get_online_players(self.code)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "player.list",
             "players": players
         })
-        await delete_user(event["username"], self.code)
 
         check = await check_mafia(code=self.code)
-
+        
+        is_end = False
+        message = ""
+        
         if not check:  # Mafia was eliminated
-            await self.send(text_data=json.dumps({
-                "type": "timer_finished",
-                "message": f"You eliminated the mafia. {event['username']} was the mafia",
-                "username": event["username"],
-                "end": True
-            }))
-        elif len(players) < 3:
-            await self.send(text_data=json.dumps({
-                "type": "timer_finished",
-                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
-                "username": event["username"],
-                "end": True
-            }))
-        else:  # Mafia still exists, game continues
-            await self.send(text_data=json.dumps({
-                "type": "timer_finished",
-                "message": f"You did not eliminate the mafia. {event['username']} was not the mafia",
-                "username": event["username"]
-            }))
+            message = f"You eliminated the mafia. {eliminated_user} was the mafia" if eliminated_user != "None" else "Mafia was eliminated."
+            is_end = True
+        elif len(players) <= 2: # Mafia wins since they equal or outnumber villagers
+            message = f"Mafia has taken over." if eliminated_user == "None" else f"You did not eliminate the mafia. {eliminated_user} was not the mafia."
+            is_end = True
+        else:
+            if phase == "day":
+                message = f"You did not eliminate the mafia. {eliminated_user} was not the mafia" if eliminated_user != "None" and eliminated_user else "No one was eliminated."
+            else:
+                message = "The night passed peacefully."
+
+        await self.send(text_data=json.dumps({
+            "type": "timer_finished",
+            "message": message,
+            "username": eliminated_user,
+            "end": is_end
+        }))
 
 
 
@@ -366,7 +396,8 @@ class VotingConsumer(AsyncWebsocketConsumer):
     async def start_voting(self, event):
         await reset_vote(code=self.code)
         await self.send(text_data=json.dumps({
-            "type": "start_voting"
+            "type": "start_voting",
+            "phase": event.get("phase", "day")
         }))
         
     async def not_found(self, event):
