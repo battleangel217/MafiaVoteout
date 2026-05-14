@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'mafiavoteout-backend.onrender.com',
+    'mafiavoteout-backend2.onrender.com',
     '127.0.0.1',
     'localhost',
     'mafiavoteout.onrender.com'
@@ -44,7 +44,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5502',
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-    'https://mafiavoteout-backend.onrender.com',
+    'https://mafiavoteout-backend2.onrender.com',
     'https://mafiavoteout.onrender.com'
 ]
 
